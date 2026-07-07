@@ -10,7 +10,6 @@
             --primary: #4361ee; --secondary: #7209b7; --success: #00b894;
             --danger: #ff7675; --warning: #fbc531; --info: #0984e3;
             --bg-main: #f0f4f8; --card-bg: #ffffff; --text-main: #2d3436;
-            /* 糖果粉彩色系 (供資料庫使用) */
             --candy-pink: #ffb5a7; --candy-peach: #fcd5ce; --candy-yellow: #fdf0d5;
             --candy-mint: #d8e2dc; --candy-blue: #a3c4f3; --candy-purple: #c8b6ff;
             --strong-orange: #e17055;
@@ -118,6 +117,7 @@
 
         .fishing-game-area { position: relative; width: 100%; height: 480px; background: linear-gradient(to bottom, #1e3c72 0%, #2a5298 40%, #0a1f3d 100%); border-radius: 20px; border: 5px solid #2a5298; overflow: hidden; margin-bottom: 20px; box-shadow: inset 0 0 30px rgba(0,0,0,0.5); transition: all 0.3s; cursor: crosshair;}
         
+        /* 視覺化海洋光束、氣泡與波浪 */
         .light-beams { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(25deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.03) 5%, transparent 5%, transparent 10%); z-index: 1; pointer-events: none; }
         .ocean-flow { position: absolute; top: 0; left: 0; width: 200%; height: 100%; background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 2%, transparent 3%), radial-gradient(circle at 30% 80%, rgba(255,255,255,0.03) 3%, transparent 4%); background-size: 120px 120px; animation: flowOcean 20s linear infinite; z-index: 2; pointer-events: none;}
         @keyframes flowOcean { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -187,7 +187,7 @@
         .buff-zone { display: flex; flex-wrap: wrap; gap: 8px; background: #fffbeb; padding: 12px 15px; border-radius: 10px 10px 0 0; border: 1px dashed #f6e58d; border-bottom: none; align-items: center; width: 100%; box-sizing: border-box;}
         .buff-label { font-size: 0.95rem; font-weight: 900; color: #d35400; margin-right: 5px; }
         .buff-btn { background: white; border: 2px solid #ffeaa7; color: #d35400; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 900; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .buff-btn:hover { background: #ffeaa7; border-color: #fdcb6e; transform: translateY(-2px); }
+        .buff-btn:hover { background: #ffeaa7; transform: translateY(-2px); }
         .buff-btn.active-buff { background: var(--warning); color: white; border-color: #d35400; transform: scale(1.05); box-shadow: 0 4px 10px rgba(211, 84, 0, 0.3);}
         .buff-btn.used { background: var(--success); border-color: var(--success); color: white; pointer-events: none; }
         
@@ -207,6 +207,45 @@
         .cartoon-avatar { width: 80px; height: 80px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; margin: 0 auto 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 3px solid; }
         @keyframes morph { 0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; } 34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; } 67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; } 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; } }
         .desktop-arrow { display: inline-block; }
+
+        /* ================= 響應式手機版 CSS ================= */
+        @media (max-width: 850px) {
+            .game-hud { flex-wrap: wrap; height: auto; padding: 10px; }
+            .hud-title { width: 50%; font-size: 1.1rem;}
+            .score-board { width: auto; margin-left: auto; font-size: 1rem; padding: 4px 12px;}
+            /* 讓導航列在手機可以橫向滑動 */
+            .progress-bar { width: 100%; margin-top: 10px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 5px; justify-content: flex-start;}
+            .progress-bar::-webkit-scrollbar { display: none; }
+            .step-dot { flex-shrink: 0; font-size: 0.85rem; padding: 6px 12px; }
+            body { padding-top: 120px; }
+
+            /* Fishing Board Fixes (縮小並上移防遮擋) */
+            .fish-question-board { font-size: 0.9rem; padding: 8px 12px; top: 5px; width: 95%; gap: 8px;}
+            .fish-q-num { font-size: 0.85rem; padding: 2px 8px; }
+            .boat { width: 80px; height: 25px; top: 15px; }
+            .fisherman { font-size: 1.5rem; bottom: 15px; }
+            .fishing-line { top: 40px; }
+            .target-zone { width: 80px; }
+            .fish-body { font-size: 0.9rem; padding: 6px 12px; gap: 5px;}
+            .fish-body i { font-size: 1.1rem; }
+            .pull-btn { font-size: 1.4rem; padding: 10px 30px; bottom: 15px; }
+
+            /* Fullscreen Fixes */
+            .fishing-game-area.fullscreen .exit-fs-btn { top: 10px; right: 10px; padding: 5px 10px; font-size: 0.8rem; z-index: 3020;}
+            .fishing-game-area.fullscreen .fish-question-board { font-size: 1rem; padding: 10px 15px; top: 50px; width: 95%; }
+            .fishing-game-area.fullscreen .boat { top: 45px; transform: translateX(-50%) scale(1); }
+            .fishing-game-area.fullscreen .fisherman { font-size: 2rem; }
+            .fishing-game-area.fullscreen .pull-btn { font-size: 1.6rem; padding: 15px 40px; bottom: 20px; }
+            
+            /* Minesweeper */
+            .military-map { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; }
+            .sector { height: 80px; font-size: 1rem; }
+
+            /* Pyramid */
+            .pyr-slot { font-size: 0.85rem; padding: 10px 5px; min-height: 80px; }
+            .pyr-label { font-size: 0.75rem; padding: 2px 8px; }
+        }
+
         @media (max-width: 768px) { .desktop-arrow { display: none !important; } }
 
         @media print {
@@ -419,10 +458,10 @@
                     <div class="bg-blob"></div>
                     <div class="num"><i class="fa-solid fa-database" style="font-size: 1.8rem;"></i></div>
                 </div>
-                <h1 class="main-title">商業新聞稿寫作練習</h1>
+                <h1 class="main-title">商業新聞稿寫作資料庫</h1>
             </div>
 
-            <p style="font-weight: bold; color: #4a5568; font-size: 1.1rem;">請閱讀「點燃 60 個夢想」活動資料，然後根據下面的步驟，完成寫作準備練習。</p>
+            <p style="font-weight: bold; color: #4a5568; font-size: 1.1rem;">以下為「點燃 60 個夢想」活動的完整背景資料，供寫作時參考。</p>
 
             <div class="game-section" style="background: #fdfdfd; border-color: var(--candy-yellow); border-radius: 25px; padding: 35px; margin-bottom: 40px; box-shadow: inset 0 0 20px rgba(0,0,0,0.02); border: 3px dashed #cbd5e0;">
                 <div style="display: flex; flex-wrap: wrap; gap: 30px;">
@@ -716,7 +755,7 @@
             </div>
             
             <div style="text-align: center; margin-top: 40px;">
-                <button class="btn-next" style="width: auto; padding: 12px 30px; display: inline-block;" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });"><i class="fa-solid fa-arrow-up"></i> 回到頂部</button>
+                <button class="btn-next" style="width: auto; padding: 12px 30px; display: inline-block;" onclick="playSound('click'); window.scrollTo({ top: 0, behavior: 'smooth' });"><i class="fa-solid fa-arrow-up"></i> 回到頂部</button>
             </div>
         </div>
 
@@ -1199,7 +1238,7 @@
             }, 250);
         }
 
-        // ================= LV4 實戰寫作 =================
+        // ================= LV4 實戰寫作 (雙擊預覽/插入) =================
         const writeData = [
             { id: 'w-title', t: "1. 標題", h: "交代活動名稱 + 突顯數據亮點", buffs: [
                 {w: "「點燃 60 個夢想」", eg: "信豐集團與社聯合辦「點燃 60 個夢想」活動。"},
