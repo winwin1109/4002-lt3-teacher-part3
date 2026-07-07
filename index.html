@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PR總編室：商業新聞稿實戰特訓 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee; --secondary: #7209b7; --success: #00b894;
+            --danger: #ff7675; --warning: #fbc531; --info: #0984e3;
+            --bg-main: #f0f4f8; --card-bg: #ffffff; --text-main: #2d3436;
+            /* 糖果粉彩色系 (供資料庫使用) */
+            --candy-pink: #ffb5a7; --candy-peach: #fcd5ce; --candy-yellow: #fdf0d5;
+            --candy-mint: #d8e2dc; --candy-blue: #a3c4f3; --candy-purple: #c8b6ff;
+            --strong-orange: #e17055;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background-color: var(--bg-main); background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+            background-size: 30px 30px; color: var(--text-main);
+            margin: 0; padding: 0; padding-top: 80px; line-height: 1.6; overflow-x: hidden;
+        }
+
+        /* 遊戲頂部狀態列與導航鎖 */
+        .game-hud {
+            position: fixed; top: 0; left: 0; right: 0; height: 75px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            padding: 0 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; box-sizing: border-box; border-bottom: 4px solid var(--primary);
+        }
+        .hud-title { font-size: 1.4rem; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .progress-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;}
+        
+        .step-dot { padding: 6px 15px; border-radius: 20px; background: #e2e8f0; color: #a0aec0; font-weight: 900; font-size: 0.9rem; transition: 0.3s; cursor: not-allowed; }
+        .step-dot.unlocked { background: var(--primary); color: white; cursor: pointer; box-shadow: 0 2px 5px rgba(67, 97, 238, 0.3); }
+        .step-dot.unlocked:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .step-dot.active { background: var(--warning); color: #d35400; box-shadow: 0 0 15px rgba(251, 197, 49, 0.4); cursor: pointer; transform: none;}
+
+        .score-board {
+            background: #fff9e6; padding: 8px 25px; border-radius: 30px;
+            border: 2px dashed var(--warning); font-size: 1.3rem; font-weight: 900; color: #d35400;
+            display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(251, 197, 49, 0.2);
+        }
+
+        /* 浮動分數特效 */
+        .floating-score { position: fixed; font-size: 2.2rem; font-weight: 900; pointer-events: none; animation: floatUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; z-index: 9999; }
+        .score-plus { color: var(--success); text-shadow: 0 3px 0 #008f72, 0 0 10px rgba(0,255,0,0.5); }
+        .score-minus { color: var(--danger); text-shadow: 0 3px 0 #d63031, 0 0 10px rgba(255,0,0,0.5); }
+        @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -60px) scale(1.5); } }
+
+        /* 錯誤解析彈窗 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 5000; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+        .modal-box { background: white; border-radius: 20px; padding: 30px 40px; max-width: 500px; width: 90%; border-top: 10px solid var(--danger); box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; animation: bounceIn 0.4s; position: relative; }
+        .modal-title { color: var(--danger); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.6rem; }
+        .modal-msg { font-size: 1.1rem; font-weight: bold; color: #4a5568; line-height: 1.6; text-align: justify; margin-bottom: 25px; background: #fff5f5; padding: 15px; border-radius: 10px; border-left: 5px solid var(--danger); }
+        .close-btn { background: var(--danger); border: none; color: white; padding: 12px 30px; cursor: pointer; border-radius: 30px; font-size: 1.1rem; font-weight: 900; transition: 0.3s; box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3);}
+        .close-btn:hover { background: #d63031; transform: translateY(-2px); }
+        @keyframes bounceIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* 頁面容器 */
+        .container { max-width: 950px; margin: 30px auto 60px; padding: 0 20px; }
+        .page { display: none; background: var(--card-bg); border-radius: 20px; padding: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); animation: fadeIn 0.5s; border-top: 8px solid var(--primary); }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .level-title { font-size: 2rem; color: var(--primary); margin-top: 0; border-bottom: 2px dashed #dfe6e9; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
+        .level-desc { background: #e0f2fe; border-left: 6px solid var(--primary); padding: 15px 25px; border-radius: 10px; font-weight: bold; color: var(--primary); margin-bottom: 30px; font-size: 1.1rem; line-height: 1.7; }
+        
+        .btn-next { display: block; width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 1.25rem; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 30px; box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3); }
+        .btn-next:hover:not(:disabled) { background: #304ffe; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4); }
+        .btn-next:disabled { background: #cbd5e0; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        /* LV1: 戰略軍區掃雷遊戲 */
+        .military-map { background-color: #4b6584; background-image: repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(0,0,0,0.1) 15px, rgba(0,0,0,0.1) 30px); padding: 20px; border-radius: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; border: 6px solid #2f3640; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); margin-bottom: 20px;}
+        .sector { background: rgba(236, 240, 241, 0.95); border: 4px dashed #2d3436; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 900; color: #2d3436; cursor: pointer; transition: 0.2s; border-radius: 10px; box-shadow: 0 5px 10px rgba(0,0,0,0.2);}
+        .sector:hover:not(.cleared) { transform: scale(1.05); background: #fff; border-style: solid; border-color: var(--warning); color: var(--warning);}
+        .sector.cleared { background: #b8e994; border-color: #2ed573; border-style: solid; color: #2d3436; cursor: default; transform: scale(0.95); box-shadow: none;}
+        .sector.boom { background: #ff7675; border-color: #d63031; border-style: solid; color: white; animation: shake 0.5s; }
+        
+        .radar-panel { background: #2f3640; border: 4px solid #fbc531; border-radius: 15px; padding: 25px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: fadeIn 0.3s;}
+        .radar-header { font-size: 1.3rem; font-weight: 900; color: #fbc531; margin-bottom: 15px; border-bottom: 2px dashed #7f8fa6; padding-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;}
+        .radar-panel .q-text { font-size: 1.15rem; font-weight: 900; margin-bottom: 20px; color: #f5f6fa; background: #353b48; padding: 15px; border-radius: 8px; border-left: 6px solid #4cd137; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);}
+        .radar-panel .opt-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .radar-panel .opt-btn { background: #718093; border: 3px solid #1e272e; padding: 15px 20px; border-radius: 10px; font-size: 1.05rem; font-weight: bold; color: #f5f6fa; cursor: pointer; text-align: left; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .radar-panel .opt-btn:hover { background: #4cd137; border-color: #44bd32; color: #2f3640; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
+
+        /* LV2: 倒金字塔互動區 */
+        .pyramid-wrapper { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 35px 0; }
+        .pyr-row { display: flex; justify-content: center; gap: 12px; width: 100%; }
+        .pyr-slot { background: #f1f2f6; border: 3px dashed #b2bec3; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 900; color: #636e72; cursor: pointer; transition: 0.3s; text-align: center; padding: 15px 10px; box-sizing: border-box; min-height: 110px; border-radius: 12px; font-size: 1.05rem; position: relative;}
+        .pyr-slot:hover:not(.filled) { border-color: var(--secondary); background: #f0edff; color: var(--secondary); transform: scale(1.02); }
+        .pyr-slot.filled { border-style: solid; color: white; cursor: default; box-shadow: 0 5px 15px rgba(0,0,0,0.15); font-size: 0.95rem; line-height: 1.4; animation: popIn 0.3s; }
+        
+        .row-lead .pyr-slot { background: #fff3cd; color: #d35400; border-color: #fdcb6e; width: 32%;}
+        .row-lead .pyr-slot.filled { background: var(--danger); border-color: var(--danger); color: white; }
+        .row-body .pyr-slot { background: #e0f2fe; color: #0984e3; border-color: #74b9ff; width: 48%; }
+        .row-body .pyr-slot.filled { background: var(--warning); border-color: var(--warning); color: #d35400; }
+        .row-tail .pyr-slot { background: #f1f2f6; color: #636e72; width: 60%; }
+        .row-tail .pyr-slot.filled { background: var(--success); border-color: var(--success); color: white; }
+
+        .pyr-label { font-size: 0.85rem; background: rgba(255,255,255,0.9); color: #2d3436; padding: 4px 12px; border-radius: 10px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #dfe6e9;}
+        .pyr-slot.filled .pyr-label { display: none; }
+        @keyframes popIn { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
+
+        .material-bank { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 25px; background: #f8fafc; border-radius: 15px; border: 2px solid #e2e8f0; }
+        .bank-item { background: white; border: 2px solid var(--secondary); color: var(--secondary); padding: 12px 18px; border-radius: 25px; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(114, 9, 183, 0.1); width: calc(33% - 15px); line-height: 1.4; text-align: center; display: flex; align-items: center; justify-content: center;}
+        .bank-item:hover { background: var(--secondary); color: white; transform: translateY(-3px); box-shadow: 0 6px 15px rgba(114, 9, 183, 0.2); }
+        .bank-item.active { background: var(--secondary); color: white; transform: scale(1.05); box-shadow: 0 0 0 4px rgba(114, 9, 183, 0.3); }
+        .bank-item.used { opacity: 0; pointer-events: none; position: absolute; }
+
+        /* LV3: 全螢幕深海動感釣魚遊戲區 */
+        .fullscreen-btn-wrap { text-align: center; margin-bottom: 20px; }
+        .btn-fullscreen { background: var(--info); color: white; border: none; padding: 15px 30px; font-size: 1.2rem; font-weight: 900; border-radius: 30px; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(9, 132, 227, 0.4); display: inline-flex; align-items: center; gap: 10px;}
+        .btn-fullscreen:hover { transform: scale(1.05); background: #0097e6; }
+
+        .fishing-game-area { position: relative; width: 100%; height: 480px; background: linear-gradient(to bottom, #1e3c72 0%, #2a5298 40%, #0a1f3d 100%); border-radius: 20px; border: 5px solid #2a5298; overflow: hidden; margin-bottom: 20px; box-shadow: inset 0 0 30px rgba(0,0,0,0.5); transition: all 0.3s; cursor: crosshair;}
+        
+        .light-beams { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(25deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.03) 5%, transparent 5%, transparent 10%); z-index: 1; pointer-events: none; }
+        .ocean-flow { position: absolute; top: 0; left: 0; width: 200%; height: 100%; background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 2%, transparent 3%), radial-gradient(circle at 30% 80%, rgba(255,255,255,0.03) 3%, transparent 4%); background-size: 120px 120px; animation: flowOcean 20s linear infinite; z-index: 2; pointer-events: none;}
+        @keyframes flowOcean { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        
+        .bubbles { position: absolute; width: 100%; height: 100%; z-index: 2; pointer-events: none; overflow: hidden; }
+        .bubble { position: absolute; bottom: -20px; background: rgba(255, 255, 255, 0.15); border-radius: 50%; box-shadow: inset 0 0 5px rgba(255,255,255,0.3); animation: rise infinite ease-in; }
+        @keyframes rise { 0% { transform: translateY(0) scale(1); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-800px) scale(1.5); opacity: 0; } }
+
+        .water-surface { position: absolute; top: 0; width: 100%; height: 50px; background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 50%, transparent 100%); z-index: 5; pointer-events: none;}
+        .water-surface::after { content: ''; position: absolute; top: 35px; left: 0; width: 200%; height: 15px; background: radial-gradient(ellipse at center, rgba(255,255,255,0.2) 0%, transparent 50%); background-size: 80px 15px; animation: flowOcean 6s linear infinite; }
+
+        .target-zone { position: absolute; left: 50%; top: 50px; bottom: 0; width: 120px; transform: translateX(-50%); background: linear-gradient(to bottom, rgba(251, 197, 49, 0.25) 0%, rgba(251, 197, 49, 0.02) 100%); border-left: 2px dashed rgba(251, 197, 49, 0.5); border-right: 2px dashed rgba(251, 197, 49, 0.5); z-index: 3; pointer-events: none; box-shadow: 0 0 20px rgba(251, 197, 49, 0.2);}
+        .target-zone::before { content: "🎯 黃金水域"; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: #fbc531; font-weight: 900; opacity: 1; font-size: 1rem; width: 100%; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+
+        /* 全螢幕狀態 CSS */
+        .fishing-game-area.fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 3000; border-radius: 0; border: none; margin: 0; }
+        .exit-fs-btn { display: none; }
+        .fishing-game-area.fullscreen .exit-fs-btn { display: flex; position: absolute; top: 20px; right: 20px; z-index: 3010; background: rgba(0,0,0,0.5); color: white; border: 2px solid white; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; align-items: center; gap: 8px;}
+        .fishing-game-area.fullscreen .exit-fs-btn:hover { background: rgba(0,0,0,0.8); }
+        .fishing-game-area.fullscreen .boat { top: 30px; transform: translateX(-50%) scale(1.5); }
+        .fishing-game-area.fullscreen .fishing-line { top: 90px; width: 4px; }
+        .fishing-game-area.fullscreen .fish-question-board { top: 40px; font-size: 1.8rem; padding: 20px 40px; }
+        .fishing-game-area.fullscreen .pull-btn { bottom: 50px; font-size: 2.2rem; padding: 20px 80px; }
+
+        .fish-question-board { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 15px 30px; border-radius: 30px; font-size: 1.25rem; font-weight: 900; color: #1e3c72; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10; text-align: center; width: 85%; max-width: 800px; border: 3px solid var(--warning); display: flex; align-items: center; justify-content: center; gap: 15px; transition: 0.3s;}
+        .fish-q-num { background: var(--warning); color: #d35400; padding: 4px 12px; border-radius: 20px; font-size: 1.1rem; flex-shrink: 0;}
+        
+        .boat { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); width: 120px; height: 35px; background: #d35400; border-radius: 0 0 30px 30px; z-index: 6; border: 2px solid #a04000; border-top: none; box-shadow: 0 5px 10px rgba(0,0,0,0.3); transition: 0.3s;}
+        .fisherman { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); font-size: 2.5rem; color: #2d3436; }
+        .fishing-line { position: absolute; top: 60px; left: 50%; width: 2px; height: 0; background: rgba(255,255,255,0.7); box-shadow: 0 0 4px rgba(255,255,255,0.5); z-index: 5; transform: translateX(-50%); pointer-events: none;}
+        .fishing-hook { position: absolute; bottom: -14px; left: -7px; width: 14px; height: 16px; border: 3px solid #b2bec3; border-top: none; border-radius: 0 0 50% 50%; }
+        .fishing-hook::after { content: ''; position: absolute; right: -3px; top: -2px; width: 4px; height: 4px; border-bottom: 2px solid #b2bec3; border-right: 2px solid #b2bec3; transform: rotate(-45deg); }
+        
+        .fish-pool { width: 100%; height: 100%; position: relative; z-index: 4;}
+        
+        /* 真實質感的卡通魚兒 */
+        .fish-wrapper { position: absolute; z-index: 4; display: flex; align-items: center; filter: drop-shadow(0 5px 8px rgba(0,0,0,0.5));}
+        .fish-body { padding: 10px 20px; font-weight: 900; font-size: 1.15rem; color: #2d3436; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; display: flex; align-items: center; gap: 8px; border: 2px solid #636e72; position: relative; z-index: 2; animation: bobY 1.5s ease-in-out infinite alternate; background: linear-gradient(to bottom, #dfe6e9, #b2bec3); box-shadow: inset 0 10px 10px rgba(255,255,255,0.6), inset 0 -5px 10px rgba(0,0,0,0.2);}
+        .fish-body::after { content: ''; position: absolute; width: 8px; height: 8px; background: white; border: 2px solid #2d3436; border-radius: 50%; top: 30%; }
+        .fish-tail { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; position: relative; z-index: 1; animation: bobY 1.5s ease-in-out infinite alternate; filter: drop-shadow(-2px 0px 1px #636e72);}
+        
+        .swimR { flex-direction: row; } 
+        .swimR .fish-tail { border-left: 22px solid #b2bec3; border-right: none; margin-right: -10px; margin-left: 0;}
+        .swimR .fish-body i { transform: scaleX(-1); } 
+        .swimR .fish-body::after { left: auto; right: 15px; } 
+
+        .swimL { flex-direction: row-reverse; } 
+        .swimL .fish-tail { border-right: 22px solid #b2bec3; border-left: none; margin-left: -10px; margin-right: 0;}
+        .swimL .fish-body i { transform: scaleX(1); } 
+        .swimL .fish-body::after { right: auto; left: 15px; } 
+
+        @keyframes swimR { 0% { left: -30%; } 100% { left: 120%; } }
+        @keyframes swimL { 0% { left: 120%; } 100% { left: -30%; } }
+        @keyframes bobY { 0% { transform: translateY(-10px); } 100% { transform: translateY(10px); } }
+        
+        .pull-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--warning); border: 4px solid #d35400; color: #d35400; font-size: 1.8rem; font-weight: 900; padding: 15px 50px; border-radius: 50px; cursor: pointer; z-index: 15; box-shadow: 0 10px 20px rgba(0,0,0,0.4); transition: 0.2s; }
+        .pull-btn:hover { background: #ffeaa7; transform: translateX(-50%) scale(1.05); }
+        .pull-btn:active { transform: translateX(-50%) translateY(5px); box-shadow: 0 5px 10px rgba(0,0,0,0.3); }
+
+        /* LV4: 終極寫作區 */
+        .write-section { background: white; border: 2px solid #e2e8f0; border-radius: 15px; padding: 25px; margin-bottom: 25px; transition: 0.3s; }
+        .write-section:focus-within { border-color: var(--primary); box-shadow: 0 0 15px rgba(67, 97, 238, 0.1); }
+        .write-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 15px; }
+        .write-title { margin: 0; color: var(--primary); font-size: 1.3rem; }
+        .write-hint { font-size: 0.95rem; color: var(--text-light); font-weight: bold; display: block; margin-top: 5px;}
+        
+        .buff-zone { display: flex; flex-wrap: wrap; gap: 8px; background: #fffbeb; padding: 12px 15px; border-radius: 10px 10px 0 0; border: 1px dashed #f6e58d; border-bottom: none; align-items: center; width: 100%; box-sizing: border-box;}
+        .buff-label { font-size: 0.95rem; font-weight: 900; color: #d35400; margin-right: 5px; }
+        .buff-btn { background: white; border: 2px solid #ffeaa7; color: #d35400; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 900; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .buff-btn:hover { background: #ffeaa7; border-color: #fdcb6e; transform: translateY(-2px); }
+        .buff-btn.active-buff { background: var(--warning); color: white; border-color: #d35400; transform: scale(1.05); box-shadow: 0 4px 10px rgba(211, 84, 0, 0.3);}
+        .buff-btn.used { background: var(--success); border-color: var(--success); color: white; pointer-events: none; }
+        
+        .buff-preview { background: #e0f2fe; padding: 12px 15px; font-size: 0.95rem; color: #0984e3; font-weight: bold; border: 1px dashed #74b9ff; border-top: none; border-radius: 0 0 10px 10px; margin-bottom: 15px; display: none; box-sizing: border-box; width: 100%;}
+        .editor-box { width: 100%; min-height: 120px; border: 2px dashed #cbd5e0; border-radius: 10px; padding: 15px; box-sizing: border-box; font-family: inherit; font-size: 1.1rem; line-height: 1.8; color: var(--text-main); resize: vertical; outline: none; background: #fdfdfd; transition: 0.3s; font-weight: bold; }
+        .editor-box:focus { border-color: var(--primary); border-style: solid; background: white; }
+
+        /* LV5: 資料庫專用 CSS */
+        .num-bubble { position: relative; width: 70px; height: 70px; flex-shrink: 0; }
+        .num-bubble .bg-blob { position: absolute; width: 100%; height: 100%; background: var(--candy-blue); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; animation: morph 3s ease-in-out infinite; }
+        .num-bubble .num { position: absolute; font-size: 30px; font-weight: 900; color: #fff; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;}
+        .main-title { font-size: 2.2rem; color: #2d3436; margin: 0; letter-spacing: 2px; font-weight: 900; border: none; padding: 0;}
+        table.custom-table { width: 100%; border-collapse: collapse; margin-top: 30px; border: 2px solid #cbd5e0; background: #fff;}
+        table.custom-table th { padding: 15px; font-size: 1.1rem; color: #2d3436; text-align: center; font-weight: 900; border: 2px solid #cbd5e0; }
+        table.custom-table td { padding: 15px; border: 2px solid #cbd5e0; vertical-align: middle; }
+        .thought-box { background: #f1f2f6; border-radius: 10px; padding: 12px 15px; display: inline-block; font-weight: bold; color: #4a5568; font-size: 0.95rem; border: 1px solid #dcdde1; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); position: relative;}
+        .cartoon-avatar { width: 80px; height: 80px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; margin: 0 auto 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 3px solid; }
+        @keyframes morph { 0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; } 34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; } 67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; } 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; } }
+        .desktop-arrow { display: inline-block; }
+        @media (max-width: 768px) { .desktop-arrow { display: none !important; } }
+
+        @media print {
+            .game-hud, .btn-next, .buff-zone, .buff-preview, .write-hint, .military-map, .radar-panel, .pyramid-wrapper, .material-bank, .fishing-game-area, .level-desc, .fullscreen-btn-wrap, .desktop-arrow { display: none !important; }
+            .page { display: block !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+            .write-section { border: none !important; padding: 0 !important; margin-bottom: 20px !important; box-shadow: none !important; }
+            .editor-box { border: 1px solid #ccc !important; }
+            body { background: white !important; padding-top: 0 !important;}
+            #page0, #page1, #page2, #page3, #page5 { display: none !important; }
+            #page4 { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <svg style="width:0; height:0; position:absolute;" aria-hidden="true">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7a8f" />
+            </marker>
+        </defs>
+    </svg>
+
+    <div class="game-hud">
+        <div class="hud-title"><i class="fa-solid fa-gamepad"></i> 公關大師晉級戰</div>
+        <div class="progress-bar">
+            <div class="step-dot unlocked active" id="step-page0" onclick="navTo('page0')">1. 任務</div>
+            <div class="step-dot" id="step-page1" onclick="navTo('page1')"><i class="fa-solid fa-lock"></i> 2. 掃雷</div>
+            <div class="step-dot" id="step-page2" onclick="navTo('page2')"><i class="fa-solid fa-lock"></i> 3. 結構</div>
+            <div class="step-dot" id="step-page3" onclick="navTo('page3')"><i class="fa-solid fa-lock"></i> 4. 釣魚</div>
+            <div class="step-dot" id="step-page4" onclick="navTo('page4')"><i class="fa-solid fa-lock"></i> 5. 寫作</div>
+            <div class="step-dot unlocked" id="step-page5" onclick="navTo('page5')"><i class="fa-solid fa-database"></i> 資料庫</div>
+        </div>
+        <div class="score-board"><i class="fa-solid fa-coins"></i> 積分: <span id="score-display">0</span></div>
+    </div>
+
+    <div class="modal-overlay" id="error-modal">
+        <div class="modal-box">
+            <h2 class="modal-title" id="modal-title"><i class="fa-solid fa-triangle-exclamation"></i> 哎呀！判斷失誤囉</h2>
+            <p class="modal-msg" id="error-msg">這裡會顯示錯誤原因。</p>
+            <button class="close-btn" onclick="closeModal()">明白了，繼續挑戰</button>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div id="page0" class="page active">
+            <h1 class="level-title"><i class="fa-solid fa-folder-open"></i> 任務檔案：點燃 60 個夢想</h1>
+            <div class="level-desc">
+                歡迎來到信豐集團公關部！集團剛完成了一項極具意義的 CSR (企業社會責任) 活動。你需要擬寫一則刊登於《天新日報》的商業新聞稿。請先詳閱下方的情報核心庫，準備好後便可開始闖關！
+            </div>
+            
+            <div style="background: #f8fafc; padding: 30px; border-radius: 15px; border: 2px dashed #cbd5e0;">
+                <h3 style="margin-top: 0; color: #2d3436; font-size: 1.3rem;"><i class="fa-solid fa-database"></i> 活動核心資料庫摘要</h3>
+                <ul style="line-height: 2; font-weight: bold; color: #4a5568; font-size: 1.1rem; padding-left: 20px;">
+                    <li><strong style="color: var(--primary);">主辦單位：</strong>信豐集團（成立60週年，主題「承信豐業」）、香江社會服務聯會</li>
+                    <li><strong style="color: var(--primary);">活動宗旨：</strong>中學生為長者及殘疾人士實現夢想出謀獻策。推動老幼傷健共融。</li>
+                    <li><strong style="color: var(--danger);">活動成果：</strong>吸引 130 多間學校及機構參與，收到 180 份計劃書，選出 60 個實踐項目。</li>
+                    <li><strong style="color: var(--warning);">現場花絮：</strong>昨天於香江大學舉辦頒獎禮。長者表演哈哈笑瑜伽；各團隊合力完成夢想拼圖。</li>
+                    <li><strong style="color: var(--success);">各界引述：</strong>
+                        <ul style="margin-top: 5px; color: #636e72;">
+                            <li>參加者伍同學：受中風長者「殘而不廢」精神深深鼓舞。</li>
+                            <li>評審羅怡：計劃充滿愛心及創意。</li>
+                            <li>集團副主席孟海楊：滿意活動成效，感謝各界參與，來年將再接再厲。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <div style="margin-top: 15px; font-size: 0.95rem; color: var(--strong-orange); font-weight: bold;">
+                    💡 提示：若需查閱更詳細的聯絡資料、嘉賓發言及獲選名單，可隨時點擊畫面上方的「<i class="fa-solid fa-database"></i> 資料庫」標籤。
+                </div>
+            </div>
+            <button class="btn-next" onclick="goNext('page1')">資料讀取完畢！進入 LV1 挑戰 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div id="page1" class="page" style="border-top-color: var(--warning);">
+            <h1 class="level-title" style="color: var(--warning); border-color: var(--warning);"><i class="fa-solid fa-bomb"></i> LV 1: 情報掃雷 (戰略軍區)</h1>
+            <div class="level-desc" style="background: #fff9e6; color: #d35400; border-color: var(--warning);">
+                公關的第一步是篩選具備「新聞價值」的情報！請點擊下方的戰略區塊，選出正確的選項。<br>
+                （答對插上安全旗🚩，答錯引爆地雷💣並重新挑戰）
+            </div>
+            
+            <div class="military-map" id="military-map">
+                <div class="sector" id="sec-0" onclick="openSector(0)">戰略區 A</div>
+                <div class="sector" id="sec-1" onclick="openSector(1)">戰略區 B</div>
+                <div class="sector" id="sec-2" onclick="openSector(2)">戰略區 C</div>
+                <div class="sector" id="sec-3" onclick="openSector(3)">戰略區 D</div>
+                <div class="sector" id="sec-4" onclick="openSector(4)">戰略區 E</div>
+                <div class="sector" id="sec-5" onclick="openSector(5)">戰略區 F</div>
+            </div>
+            
+            <div class="radar-panel" id="radar-panel">
+                <div class="radar-header" id="radar-title">掃描中...</div>
+                <div class="q-text" id="radar-q">問題</div>
+                <div class="opt-grid" id="radar-opts"></div>
+            </div>
+
+            <button class="btn-next" id="btn-next-1" disabled style="background: var(--warning); color: #000;" onclick="goNext('page2')">雷區全數排除！進入 LV2 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div id="page2" class="page" style="border-top-color: var(--secondary);">
+            <h1 class="level-title" style="color: var(--secondary); border-color: var(--secondary);">
+                <i class="fa-solid fa-layer-group"></i> LV 2: 藍圖解碼 (細化 5W1H)
+            </h1>
+            <div class="level-desc" style="background: #f0edff; color: var(--secondary); border-color: var(--secondary);">
+                新聞稿的結構是由 5W1H 嚴謹組成的「倒金字塔」。請點選下方的【素材積木】，然後點擊對應的【金字塔區塊】將其放入。（放對 <span style="color:var(--success);">+2分</span>，放錯 <span style="color:var(--danger);">-1分</span>）
+            </div>
+
+            <div class="pyramid-wrapper" id="pyr-wrapper">
+                <div class="pyr-row row-lead">
+                    <div class="pyr-slot" onclick="placeItem(event, this, 'lead_4w')">
+                        <span class="pyr-label">導語：4W</span><br>何人/時/地/事
+                    </div>
+                    <div class="pyr-slot" onclick="placeItem(event, this, 'lead_why')">
+                        <span class="pyr-label">導語：為何</span><br>活動目的/意義
+                    </div>
+                    <div class="pyr-slot" onclick="placeItem(event, this, 'lead_how')">
+                        <span class="pyr-label">導語：如何</span><br>參與數據/成果
+                    </div>
+                </div>
+                <div class="pyr-row row-body">
+                    <div class="pyr-slot" onclick="placeItem(event, this, 'body_event')">
+                        <span class="pyr-label">主體：盛況花絮</span><br>現場畫面
+                    </div>
+                    <div class="pyr-slot" onclick="placeItem(event, this, 'body_quote')">
+                        <span class="pyr-label">主體：各界感言</span><br>參加者評價
+                    </div>
+                </div>
+                <div class="pyr-row row-tail">
+                    <div class="pyr-slot" onclick="placeItem(event, this, 'tail_future')">
+                        <span class="pyr-label">結尾：機構展望</span><br>企業形象未來
+                    </div>
+                </div>
+            </div>
+
+            <div class="material-bank" id="material-bank"></div>
+            <button class="btn-next" id="btn-next-2" disabled style="background: var(--secondary);" onclick="goNext('page3')">結構搭建完美！帶上釣竿進入 LV3 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div id="page3" class="page" style="border-top-color: var(--info);">
+            <h1 class="level-title" style="color: var(--info); border-color: var(--info);">
+                <i class="fa-solid fa-fish-fins"></i> LV 3: 歡樂釣王傳奇 (用語特訓)
+            </h1>
+            <div class="level-desc" style="background: #e0fbfc; color: #0077b6; border-color: var(--info);">
+                請閱讀看板上的題目，仔細觀察在水中游動的「正確詞彙魚」。<br>
+                🎣 <b>操作提示：</b>當正確的魚兒游到中央<b>「🎯 拋竿區」</b>內時，點擊下方巨大的<b>「拉竿」</b>按鈕將其釣起！考驗你眼明手快的時間到了！<br>
+                （共 10 題，釣對 <span style="color:var(--success);">+2分</span>，揮空不扣分，釣錯 <span style="color:var(--danger);">-1分</span> 且魚會被嚇跑！）
+            </div>
+
+            <div class="fullscreen-btn-wrap">
+                <button class="btn-fullscreen" onclick="toggleFullScreenGame()"><i class="fa-solid fa-expand"></i> 進入全螢幕沉浸釣魚模式</button>
+            </div>
+
+            <div style="font-weight: bold; color: #4a5568; margin-bottom: 10px; font-size: 1.1rem; text-align: center;">
+                進度：<span id="fish-progress" style="color:var(--info); font-size: 1.4rem;">1</span> / 10
+            </div>
+
+            <div class="fishing-game-area" id="fish-game">
+                <button class="exit-fs-btn" onclick="toggleFullScreenGame()"><i class="fa-solid fa-compress"></i> 關閉全螢幕</button>
+                <div class="ocean-flow"></div>
+                <div class="light-beams"></div>
+                
+                <div class="bubbles">
+                    <div class="bubble" style="left: 15%; width: 12px; height: 12px; animation-duration: 4s;"></div>
+                    <div class="bubble" style="left: 35%; width: 22px; height: 22px; animation-duration: 6s; animation-delay: 1.5s;"></div>
+                    <div class="bubble" style="left: 65%; width: 15px; height: 15px; animation-duration: 5s; animation-delay: 0.5s;"></div>
+                    <div class="bubble" style="left: 85%; width: 18px; height: 18px; animation-duration: 7s; animation-delay: 2.5s;"></div>
+                    <div class="bubble" style="left: 50%; width: 25px; height: 25px; animation-duration: 8s; animation-delay: 3s;"></div>
+                </div>
+
+                <div class="target-zone"></div>
+                <div class="water-surface"></div>
+                
+                <div class="fish-question-board">
+                    <span class="fish-q-num" id="fish-q-num">Q1</span>
+                    <span id="fish-q-text">準備釣魚！</span>
+                </div>
+                
+                <div class="boat">
+                    <div class="fisherman"><i class="fa-solid fa-user-astronaut"></i></div>
+                </div>
+                
+                <div class="fishing-line" id="fishing-line">
+                    <div class="fishing-hook"></div>
+                </div>
+
+                <div class="fish-pool" id="fish-pool"></div>
+                <button class="pull-btn" id="pull-rod-btn" onclick="pullRod(event)"><i class="fa-solid fa-anchor"></i> 拉 竿！</button>
+            </div>
+            <button class="btn-next" id="btn-next-3" disabled style="background: var(--info);" onclick="goNext('page4')">詞彙滿載而歸！進入最終寫作實戰 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div id="page4" class="page" style="border-top-color: var(--danger);">
+            <h1 class="level-title" style="color: var(--danger); border-color: var(--danger);">
+                <i class="fa-solid fa-pen-fancy"></i> 終極實戰：商業新聞稿寫作
+            </h1>
+            <div class="level-desc" style="background: #fff5f5; color: #c0392b; border-color: var(--danger);">
+                大師，展現實力的時刻到了！請根據剛才理清的「倒金字塔結構」，在下方完成新聞稿。<br>
+                💡 <strong style="color:var(--warning); text-shadow: 1px 1px 0px #fff;">寫作外掛：</strong>點擊段落上方的<strong style="color:var(--warning); text-shadow: 1px 1px 0px #fff;">「✨自我增值」</strong>詞彙一次，可查看<b>例句示範</b>；<br>
+                <strong style="color:var(--success);">連續點擊第二次</strong>，該詞彙就會自動跳進你的寫作空格中！
+            </div>
+            <div id="writing-sections"></div>
+            <button class="btn-next" style="background: var(--success);" onclick="exportHTMLToWord()">
+                <i class="fa-solid fa-file-word"></i> 恭喜大師！匯出 Word 檔繳交
+            </button>
+        </div>
+
+        <div id="page5" class="page" style="border-top-color: var(--candy-blue);">
+            <div class="title-wrapper">
+                <div class="num-bubble">
+                    <div class="bg-blob"></div>
+                    <div class="num"><i class="fa-solid fa-database" style="font-size: 1.8rem;"></i></div>
+                </div>
+                <h1 class="main-title">商業新聞稿寫作練習</h1>
+            </div>
+
+            <p style="font-weight: bold; color: #4a5568; font-size: 1.1rem;">請閱讀「點燃 60 個夢想」活動資料，然後根據下面的步驟，完成寫作準備練習。</p>
+
+            <div class="game-section" style="background: #fdfdfd; border-color: var(--candy-yellow); border-radius: 25px; padding: 35px; margin-bottom: 40px; box-shadow: inset 0 0 20px rgba(0,0,0,0.02); border: 3px dashed #cbd5e0;">
+                <div style="display: flex; flex-wrap: wrap; gap: 30px;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h2 style="color: #2d3436; margin-top: 0;">林子希</h2>
+                        <p style="color: #636e72; font-weight: bold; margin-bottom: 20px;">信豐集團公關部主任</p>
+                        
+                        <div style="background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #cbd5e0; margin-bottom: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05);">
+                            <strong style="color: #2d3436; font-size: 1.1rem; display: block; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 10px;">公司資料：</strong>
+                            <p style="font-size: 0.95rem; color: #4a5568; line-height: 1.8; margin: 0;">
+                                業務涵括家庭電器及影音產品代理、通訊及文儀器材代理、辦公室家具代理、機電工程及承建、電器維修及保養、物流、廣告製作、系統安裝及保養，以及中國房地產投資及物業管理項目。信豐集團植根香港 60 年，一直積極履行社會責任，大力支持及推動本港教育事務。
+                            </p>
+                            <div style="margin-top: 15px; font-size: 0.9rem; color: #2d3436; line-height: 1.6; background: #f8fafc; padding: 10px; border-radius: 8px;">
+                                <strong style="color: var(--strong-blue);">聯絡資料</strong><br>
+                                電話：(852) 2733 38888<br>
+                                傳真：(852) 2733 30966<br>
+                                網址：http://www.shunfung.com.hk<br>
+                                地址：九龍尖沙咀東部科學館道 9 號<br>
+                                電郵地址：chlam@shunfung.com.hk
+                            </div>
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <div style="background: #fef9c3; padding: 25px 20px 20px; border-radius: 2px 15px 2px 15px; box-shadow: 2px 4px 10px rgba(0,0,0,0.1); position: relative; height: 100%; box-sizing: border-box; border-left: 5px solid #facc15;">
+                            <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 60px; height: 25px; background: rgba(255, 255, 255, 0.7); box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-radius: 2px; transform: translateX(-50%) rotate(-2deg);"></div>
+                            <div style="color: #d97706; font-size: 1.3rem; font-weight: 900; text-align: center; margin-bottom: 15px; border-bottom: 2px dashed #fcd34d; padding-bottom: 10px;">你的任務</div>
+                            <p style="font-weight: bold; color: #4a5568; line-height: 1.8; font-size: 1.1rem; margin-bottom: 30px;">你須於「點燃 60 個夢想」頒獎禮結束後，發放一則新聞稿，刊登於《天新日報》。請參考資料，擬寫一則商業新聞稿，<strong style="color: #b45309;">報道活動的概況、花絮及成果，並對參加者及支持機構表示謝意。</strong></p>
+                            
+                            <div style="position: relative;">
+                                <div class="thought-box" style="width: 100%; box-sizing: border-box; background: #fff; border-color: #fde047;">
+                                    <div style="color: #0984e3; font-weight: 900; margin-bottom: 5px;">思考：</div>
+                                    寫作目標是甚麼？
+                                </div>
+                                <svg class="desktop-arrow" width="50" height="20" style="position: absolute; left: -60px; top: 50%; transform: translateY(-50%); overflow: visible;">
+                                    <path d="M 50 10 L 0 10" stroke="#6b7a8f" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="border-bottom: 2px solid var(--candy-yellow); padding-bottom: 5px; display: inline-block;">資料一：活動資料</h3>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div class="thought-box" style="background: #e2e8f0;">
+                    <div style="color: #0984e3; font-weight: 900; margin-bottom: 5px;">思考：</div>
+                    1. 有需要於新聞稿中列出所有資料嗎？<br>
+                    2. 哪些資料有新聞價值？
+                </div>
+            </div>
+            
+            <div style="background: #fff9e6; border: 3px solid var(--candy-yellow); border-radius: 15px; padding: 25px; margin-bottom: 30px;">
+                <strong style="font-size: 1.6rem; color: var(--strong-orange); display: block; text-align: center; margin-bottom: 20px; letter-spacing: 2px;">點燃 60 個夢想</strong>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 40px;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <ol style="font-weight: bold; color: #4a5568; line-height: 1.8; margin-top: 10px; padding-left: 20px;">
+                            <li><strong>舉辦日期：</strong> 2019 年 7 月 - 2020 年 2 月</li>
+                            <li style="margin-top: 10px;"><strong>活動內容：</strong> 由中學生為長者及殘疾人士實現夢想出謀獻策，並幫助他們達成夢想。</li>
+                            <li style="margin-top: 10px;"><strong>目的：</strong>
+                                <ol style="list-style-type: lower-alpha; padding-left: 25px;">
+                                    <li>發揮年輕人的創意</li>
+                                    <li>培養慈善精神，讓年輕人明白助人為快樂之本</li>
+                                    <li>為有需要人士帶來更多希望和快樂</li>
+                                    <li>推動老幼傷健共融</li>
+                                    <li>共建愛心滿溢的和諧社會</li>
+                                </ol>
+                            </li>
+                            <li style="margin-top: 10px;"><strong>活動詳情：</strong>
+                                <ol style="list-style-type: lower-alpha; padding-left: 25px;">
+                                    <li>收集計劃：誠邀全港各中學及慈善組織提交計劃書</li>
+                                    <li>資助：入選的項目將獲得實踐經費（每個項目最高港幣三萬元）</li>
+                                </ol>
+                            </li>
+                            <li style="margin-top: 10px;"><strong>評審委員會成員：</strong>
+                                <ul style="list-style-type: none; padding-left: 0; margin-top: 5px;">
+                                    <li>信豐集團副主席孟海楊先生</li>
+                                    <li>信豐集團董事孟倩雯女士</li>
+                                    <li>香江社會服務聯會行政總裁江敏新女士</li>
+                                    <li>香江福利署助理署長曾樂民先生</li>
+                                    <li>演藝界代表羅怡女士</li>
+                                    <li>演藝界代表蘇玉寧女士</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="thought-box" style="background: #e2e8f0; position: relative;">
+                            <div style="color: #0984e3; font-weight: 900; margin-bottom: 5px;">思考：</div>
+                            這項活動的價值何在？<br>1. 活動屬甚麼性質？<br>2. 對參加者來說，有何特別意義？
+                            <svg class="desktop-arrow" width="30" height="20" style="position: absolute; left: -35px; top: 50%; transform: translateY(-50%); overflow: visible;">
+                                <path d="M 30 10 L 0 10" stroke="#6b7a8f" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; background: #f4f0ff; padding: 20px 30px; border-radius: 15px; color: #3d4852; font-weight: bold; line-height: 1.6; position: relative; border: 2px dashed #a29bfe;">
+                    <div style="position: absolute; right: 20px; top: -35px; width: 70px; height: 70px; background: #fff; border: 4px solid #a29bfe; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2); z-index: 10;">
+                        <i class="fa-solid fa-user-tie" style="color: #6c5ce7; font-size: 2.2rem;"></i>
+                    </div>
+                    <div style="font-size: 1.2rem; margin-bottom: 10px; color: #6c5ce7;"><i class="fa-solid fa-quote-left"></i> 香江社會服務聯會 行政總裁 江敏新女士：</div>
+                    「人口老化、殘疾人士爭取平權等機會，這些不只是通識科的考試題目，更是社會上必須正視的問題。我們希望年輕人思考怎樣為老人家和殘疾人士實現夢想。當年輕人為滿足別人的需要而出謀獻策，他們同時會感染同輩。希望年輕人透過這個計劃幫助有需要的人士達成夢想，並對生命有更多的體會。」
+                </div>
+                
+                <hr style="border-top: 1px dashed #cbd5e0; margin: 30px 0;">
+
+                <strong style="font-size: 1.2rem; color: #2d3436; margin-bottom: 15px; display: block;">活動總結：</strong>
+                <p style="font-weight: bold; color: #4a5568; margin-top: 0;">遞交計劃書的學校或機構：130 多間</p>
+                <ol style="font-weight: bold; color: #4a5568; line-height: 1.8; margin-top: 5px; padding-left: 20px;">
+                    <li>收到計劃書數目：180 個</li>
+                    <li>獲選項目：60 個</li>
+                    <li>合辦與支持機構：
+                        <table class="custom-table" style="margin-top: 10px;">
+                            <tbody>
+                                <tr>
+                                    <td style="background: #fdf0d5; font-weight: 900; width: 30%;">香江社會服務聯會<br><span style="font-size: 0.9rem; font-weight: normal;">(合辦機構)</span></td>
+                                    <td>為各獲選團隊在實踐計劃方面提供專業意見，各團隊均表示獲益良多。</td>
+                                </tr>
+                                <tr>
+                                    <td style="background: #e2f0cb; font-weight: 900;">香江大學<br><span style="font-size: 0.9rem; font-weight: normal;">(支持機構)</span></td>
+                                    <td>學生指導員與 60 個獲選團隊會面，商討實踐項目的細節，並提供指導和支援。</td>
+                                </tr>
+                                <tr>
+                                    <td style="background: #fdf0d5; font-weight: 900;">思樂創作社<br><span style="font-size: 0.9rem; font-weight: normal;">(支持機構)</span></td>
+                                    <td>在各團隊實踐活動期間，實地拍攝活動情況，並為長者及殘疾人士夢想成真的一刻作真實記錄。</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </li>
+                </ol>
+            </div>
+
+            <h3 style="border-bottom: 2px solid var(--candy-yellow); padding-bottom: 5px; display: inline-block;">資料二：分享會暨頒獎典禮程序表</h3>
+            <div style="background: #fdfdfd; padding: 25px; border-radius: 15px; border: 1px solid #cbd5e0; margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 40px;">
+                    <div>
+                        <strong style="font-size: 1.2rem; color: #2d3436; margin-bottom: 10px; display: block;">「點燃 60 個夢想」夢想成真分享會暨頒獎典禮：</strong>
+                        <ul style="font-weight: bold; color: #4a5568; line-height: 1.8;">
+                            <li>日期：2020 年 3 月 30 日</li>
+                            <li>時間：下午 1 時 30 分 - 3 時 30 分</li>
+                            <li>地點：香江大學潤華堂</li>
+                        </ul>
+                    </div>
+                    <div class="thought-box" style="position: relative;">
+                        <div style="color: #0984e3; font-weight: 900; margin-bottom: 5px;">思考：</div>
+                        此部分資料包含導語需要展示<br>的全部要素 (5Ws+1H) 嗎？
+                        <svg class="desktop-arrow" width="30" height="20" style="position: absolute; left: -35px; top: 50%; transform: translateY(-50%); overflow: visible;">
+                            <path d="M 30 10 L 0 10" stroke="#6b7a8f" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <strong style="font-size: 1.2rem; color: #2d3436; margin-top: 25px; margin-bottom: 10px; display: block;">活動程序：</strong>
+                <table class="custom-table" style="margin-top: 0;">
+                    <thead>
+                        <tr>
+                            <th style="background: var(--candy-yellow); width: 30%;">項目</th>
+                            <th style="background: var(--candy-blue); color: white; width: 70%;">負責人 / 嘉賓</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-weight: bold; color: #4a5568; font-size: 0.95rem;">
+                        <tr><td>1. 剪綵儀式</td><td>香江福利署社會工作主任李鳳玉女士、香江社會服務聯會行政總裁江敏新女士、著名藝人羅怡女士、蘇玉寧小姐、信豐集團副主席孟海楊先生及信豐集團董事孟倩雯女士</td></tr>
+                        <tr><td>2. 表演：非洲鼓</td><td>培理中學</td></tr>
+                        <tr><td>3. 表演：哈哈笑瑜伽</td><td>鈞康長者中心</td></tr>
+                        <tr><td>4. 評審分享</td><td>羅怡女士、蘇玉寧小姐</td></tr>
+                        <tr><td>5. 播放活動花絮</td><td>思樂創作社</td></tr>
+                        <tr><td>6. 參加者分享</td><td>工作人員、義工</td></tr>
+                        <tr><td>7. 頒獎禮</td><td>香江社會服務聯會行政總裁江敏新女士</td></tr>
+                        <tr><td>8. 紀念品頒贈儀式</td><td>信豐集團董事孟倩雯女士</td></tr>
+                        <tr><td>9. 閉幕致辭</td><td>信豐集團副主席孟海楊先生</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 30px;">
+                <div style="flex: 1; min-width: 300px;">
+                    <h3 style="border-bottom: 2px solid var(--candy-yellow); padding-bottom: 5px; display: inline-block;">資料三：獲選名單 (部分)</h3>
+                    <p style="font-weight: 900; color: #2d3436; font-size: 1.2rem; margin-bottom: 10px;">獲選項目總數：60</p>
+                    <table class="custom-table" style="margin-top: 0;">
+                        <thead>
+                            <tr style="background: #fdf0d5;">
+                                <th style="width: 50%;">學校 / 慈善機構</th>
+                                <th style="width: 50%;">計劃名稱</th>
+                            </tr>
+                        </thead>
+                        <tbody style="text-align: center; font-weight: bold; color: #4a5568; font-size: 0.95rem;">
+                            <tr><td>仁其醫院附屬中學</td><td>為抗癌人士出一本書</td></tr>
+                            <tr><td>港新青少年中心</td><td>圓夢 • 一線牽 • 長者婚禮</td></tr>
+                            <tr><td>培理中學</td><td>生命節拍 Go GoGo</td></tr>
+                            <tr><td>聖士堂學校</td><td>支援長者康健人生</td></tr>
+                            <tr><td>鈞康長者中心</td><td>分享歡笑 • 分享愛</td></tr>
+                            <tr><td>華西中學</td><td>殘而不廢，老而不衰</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="flex: 1; min-width: 350px;">
+                    <h3 style="border-bottom: 2px solid var(--candy-yellow); padding-bottom: 5px; display: inline-block;">資料四：學生心聲</h3>
+                    
+                    <div style="display: flex; align-items: flex-start; gap: 15px; margin-top: 20px;">
+                        <div style="flex-shrink: 0; text-align: center;">
+                            <div class="cartoon-avatar" style="position: relative; background: #e0f2fe; border-color: #0984e3; overflow: hidden; isolation: isolate;">
+                                <i class="fa-solid fa-user-graduate" style="color: #0984e3; font-size: 2.2rem; position: absolute; bottom: 0; z-index: 2;"></i>
+                            </div>
+                            <strong style="font-size: 0.9rem; color: #2d3436;">伍俊新同學<br><span style="font-size: 0.8rem; color: #7f8fa6;">華西中學</span></strong>
+                        </div>
+                        <div style="background: #00b894; color: white; padding: 15px; border-radius: 15px; border-top-left-radius: 0; font-weight: bold; line-height: 1.6; position: relative;">
+                            周啟然伯伯因中風導致四肢活動不便，但他依然積極生活，繼續研習詩詞和書法。「殘而不廢，老而不衰」是他的人生宗旨，我們為他舉辦個人詩詞書法作品展及將他的作品集結成書。在為他實現夢想的過程中，我們也受到鼓勵。
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; margin-top: 25px; flex-direction: row-reverse;">
+                        <div style="flex-shrink: 0; text-align: center;">
+                            <div class="cartoon-avatar" style="position: relative; background: #fffcfb; border-color: #e17055; overflow: hidden; isolation: isolate;">
+                                <i class="fa-solid fa-user-graduate" style="color: #e17055; font-size: 2.2rem; position: absolute; bottom: 0; z-index: 2;"></i>
+                            </div>
+                            <strong style="font-size: 0.9rem; color: #2d3436;">李暉文同學<br><span style="font-size: 0.8rem; color: #7f8fa6;">港新青少年中心</span></strong>
+                        </div>
+                        <div style="background: #0984e3; color: white; padding: 15px; border-radius: 15px; border-top-right-radius: 0; font-weight: bold; line-height: 1.6; position: relative;">
+                            幫助長者預訂影樓、化妝打扮、整理道具、拍照，在這個過程中，長者重拾了許多回憶，看見他們臉上滿足的笑容，我們也很開心。建立一個開心、共融的社會不只是成年人的責任，中學生也應該付出自己的努力。
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; margin-top: 25px;">
+                        <div style="flex-shrink: 0; text-align: center;">
+                            <div class="cartoon-avatar" style="position: relative; background: #fff0f6; border-color: #e84393; overflow: hidden; isolation: isolate;">
+                                <i class="fa-solid fa-user-graduate" style="color: #e84393; font-size: 2.2rem; position: absolute; bottom: 0; z-index: 2;"></i>
+                            </div>
+                            <strong style="font-size: 0.9rem; color: #2d3436;">李慧珊同學<br><span style="font-size: 0.8rem; color: #7f8fa6;">鈞康長者中心</span></strong>
+                        </div>
+                        <div style="background: #ff7675; color: white; padding: 15px; border-radius: 15px; border-top-left-radius: 0; font-weight: bold; line-height: 1.6; position: relative;">
+                            我們與長者探訪不同合作夥伴單位，即場表演哈哈笑瑜伽，分享歡笑正能量，讓大家知道瑜伽並非年輕人的專利。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="border-bottom: 2px solid var(--candy-yellow); padding-bottom: 5px; display: inline-block;">資料五：活動照片</h3>
+                <div class="thought-box" style="margin-top: 15px; margin-bottom: 15px; display: block; width: max-content;">
+                    <div style="color: #0984e3; font-weight: 900; margin-bottom: 5px;">思考：</div>
+                    提示：這些照片，展示了活動的現場畫面，有助描寫活動盛況。
+                </div>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="l3p2.jpg" alt="點燃60個夢想 活動照片" style="max-width: 100%; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 2px solid #cbd5e0;">
+                </div>
+                
+                <div style="background: #f8fafc; padding: 20px; border-radius: 10px; font-weight: bold; color: #4a5568; line-height: 1.8;">
+                    <strong style="color: #2d3436; display: block; margin-bottom: 10px;">照片說明紀錄：</strong>
+                    <ul style="margin-top: 0;">
+                        <li>評審委員羅怡女士 (中) 及蘇玉寧小姐 (右) 分享感受。</li>
+                        <li>「分享歡笑，分享愛」計劃的長者表演適合男女老幼的哈哈笑瑜伽。</li>
+                        <li>「殘而不廢，老而不衰」計劃的周啟然先生勉勵年輕人要主動爭取，實踐夢想。</li>
+                        <li>各團隊合力完成「點燃 60 個夢想」拼圖。</li>
+                    </ul>
+                </div>
+                
+                <h3 style="border-bottom: 2px solid var(--candy-yellow); padding-bottom: 5px; display: inline-block; margin-top: 40px;">資料六：嘉賓感想</h3>
+                <table class="custom-table" style="margin-top: 10px;">
+                    <thead>
+                        <tr>
+                            <th style="background: var(--candy-pink); color: white; width: 50%;">羅怡女士 (訪問節錄)：</th>
+                            <th style="background: #e2f0cb; color: #2d3436; width: 50%;">信豐集團副主席孟海楊先生 (總結致詞節錄)：</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-weight: bold; color: #4a5568;">
+                        <tr>
+                            <td>非常榮幸擔任評審</td>
+                            <td>集團 60 週年主題為「承信豐業」，喻意秉守誠信，繼往開來。</td>
+                        </tr>
+                        <tr>
+                            <td>有夢想的人去幫助長者或殘疾人士達成夢想，十分有意義</td>
+                            <td>社會各階層人士，均有實現夢想的權利</td>
+                        </tr>
+                        <tr>
+                            <td>每個夢想計劃都充滿愛心及創意</td>
+                            <td>深信香港的年輕人有能力和熱誠，令夢想實現</td>
+                        </tr>
+                        <tr>
+                            <td>繼續參與，用生命感動，帶動更多人投身公益</td>
+                            <td>滿意活動成效，來年再接再厲</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>感謝年輕人參與以及有關機構的支持</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <button class="btn-next" style="width: auto; padding: 12px 30px; display: inline-block;" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });"><i class="fa-solid fa-arrow-up"></i> 回到頂部</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let score = 0;
+        let bubbleTimer = null;
+        let unlockedLevels = ['page0', 'page5']; // 預設解鎖 page0 任務簡報 與 page5 資料庫
+
+        // 音效系統 (Web Audio API 合成)
+        function playSound(type) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if(!AudioContext) return;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                
+                if(type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                    osc.start(); osc.stop(ctx.currentTime + 0.1);
+                } else if(type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, ctx.currentTime);
+                    osc.frequency.setValueAtTime(600, ctx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(800, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(ctx.currentTime + 0.3);
+                } else if(type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(ctx.currentTime + 0.3);
+                } else if(type === 'sweep') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(800, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                    osc.start(); osc.stop(ctx.currentTime + 0.1);
+                } else if(type === 'boom') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(100, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.5);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                    osc.start(); osc.stop(ctx.currentTime + 0.5);
+                } else if(type === 'throw') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(ctx.currentTime + 0.3);
+                } else if(type === 'catch') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(400, ctx.currentTime);
+                    osc.frequency.setValueAtTime(600, ctx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(800, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                    osc.start(); osc.stop(ctx.currentTime + 0.4);
+                } else if(type === 'fail') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(ctx.currentTime + 0.3);
+                } else if(type === 'bubble') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(150 + Math.random()*150, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(400 + Math.random()*200, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.05);
+                    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+                    osc.start(); osc.stop(ctx.currentTime + 0.15);
+                }
+            } catch(e) {}
+        }
+
+        // 導航解鎖系統
+        function goNext(nextPageId) {
+            playSound('click');
+            if (!unlockedLevels.includes(nextPageId)) {
+                unlockedLevels.push(nextPageId);
+                let dot = document.getElementById('step-' + nextPageId);
+                if(dot) {
+                    dot.classList.add('unlocked');
+                    dot.innerHTML = dot.innerHTML.replace('<i class="fa-solid fa-lock"></i> ', '');
+                }
+            }
+            switchPage(nextPageId);
+        }
+
+        function navTo(pageId) {
+            if (unlockedLevels.includes(pageId)) {
+                playSound('click');
+                switchPage(pageId);
+            }
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            // 由於 page5 放在最後，不參與進度條的主線狀態，需特別處理
+            const steps = ['page0', 'page1', 'page2', 'page3', 'page4', 'page5'];
+            let currentIndex = steps.indexOf(pageId);
+            
+            steps.forEach((id, idx) => {
+                const dot = document.getElementById('step-' + id);
+                if(dot) {
+                    dot.classList.remove('active', 'completed');
+                    if (unlockedLevels.includes(id)) {
+                        if (idx < currentIndex && id !== 'page5') dot.classList.add('completed');
+                        else if (idx === currentIndex) dot.classList.add('active');
+                    }
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            if(pageId === 'page3') {
+                if(fishCurrentQ === 0) loadFishQuestion();
+                startBubbleSound();
+            } else {
+                stopBubbleSound();
+            }
+        }
+
+        function startBubbleSound() {
+            if(bubbleTimer) return;
+            bubbleTimer = setInterval(() => { if(Math.random() > 0.6) playSound('bubble'); }, 1500);
+        }
+        function stopBubbleSound() {
+            if(bubbleTimer) { clearInterval(bubbleTimer); bubbleTimer = null; }
+        }
+
+        function updateScore(points, e) {
+            if (points === 0) return;
+            score += points; document.getElementById('score-display').innerText = score;
+            const el = document.createElement('div');
+            el.className = 'floating-score ' + (points > 0 ? 'score-plus' : 'score-minus');
+            el.innerText = points > 0 ? `+${points}` : `${points}`;
+            el.style.left = (e && e.clientX ? e.clientX : window.innerWidth/2) + 'px';
+            el.style.top = (e && e.clientY ? e.clientY : window.innerHeight/2) + 'px';
+            el.style.zIndex = 9999;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function showErrorModal(title, msg, callbackAction = '') {
+            document.getElementById('modal-title').innerHTML = title;
+            document.getElementById('error-msg').innerHTML = msg;
+            const modal = document.getElementById('error-modal');
+            modal.style.display = 'flex';
+            modal.dataset.callback = callbackAction;
+        }
+
+        function closeModal() {
+            playSound('click');
+            const modal = document.getElementById('error-modal');
+            modal.style.display = 'none';
+            if (modal.dataset.callback === 'resumeFish') {
+                isFishing = false;
+                document.getElementById('pull-rod-btn').disabled = false;
+                document.getElementById('pull-rod-btn').style.opacity = '1';
+                document.querySelectorAll('.fish-wrapper').forEach(f => {
+                    if (f.dataset.dead !== "true") f.style.animationPlayState = 'running';
+                });
+            }
+        }
+
+        // ================= LV1 戰略軍區掃雷 =================
+        const lv1Data = [
+            { q: "【影響性】為突顯活動新聞價值，導語應強調哪項數據？", correct: 0, opts: [
+                { t: "收到 180 份計劃書，並吸引 130 多間學校及機構參與。", r: "" },
+                { t: "頒獎典禮在下午 1 時 30 分至 3 時 30 分舉行。", r: "時間地點屬於基本資訊，無法像「具體參與人數」那樣突顯活動廣泛的社會影響力，這才是新聞價值的核心！" }
+            ]},
+            { q: "【寫作視角】提及主辦方時，哪種寫法最符合客觀原則？", correct: 1, opts: [
+                { t: "我們集團與香江社會服務聯會合作舉辦了分享會。", r: "新聞稿忌用「我們」等第一人稱，必須保持客觀中立的第三人稱視角，避免主觀推銷感。" },
+                { t: "信豐集團與香江社會服務聯會合作舉辦了分享會。", r: "" }
+            ]},
+            { q: "【客觀用語】引用參加者感受時，哪種寫法更恰當平實？", correct: 0, opts: [
+                { t: "伍同學受訪時表示，被長者「殘而不廢」的精神鼓舞。", r: "" },
+                { t: "伍同學覺得這個活動超級讚，大家都玩瘋了！", r: "「超級讚」、「玩瘋了」過於口語化且帶有強烈主觀宣傳色彩，新聞稿轉述應力求客觀、平實。" }
+            ]},
+            { q: "【特殊性】若要在標題突顯活動亮點，哪種切入角度更好？", correct: 0, opts: [
+                { t: "點燃60個夢想 吸引逾130間機構參與", r: "" },
+                { t: "信豐集團與社聯舉辦點燃60個夢想活動", r: "標題需要「概括重點」並「吸引眼球」，如果只寫機構和活動名稱，會顯得平淡乏味，無法突顯成果。" }
+            ]},
+            { q: "【盛況描述】描述現場花絮時，哪種方式更能帶出「現場感」？", correct: 0, opts: [
+                { t: "長者登台表演哈哈笑瑜伽，團隊合力完成夢想拼圖。", r: "" },
+                { t: "現場氣氛好到難以形容，所有人都感到前所未有的快樂。", r: "「氣氛好到難以形容」流於空泛主觀。新聞寫作講求「用事實說話」，具體描述動作和畫面才是好方法。" }
+            ]},
+            { q: "【結尾宣傳】作為「商業新聞稿」，結尾通常會包含什麼？", correct: 0, opts: [
+                { t: "帶出集團60週年背景、感謝各界支持，並承諾來年繼續舉辦。", r: "" },
+                { t: "再次重複交代活動的詳細時間與地點。", r: "結尾不需重複導語已交代的資訊，結尾的目的是「宣傳企業形象」或「預告未來計畫」。" }
+            ]}
+        ];
+        
+        let currentSector = null;
+        let lv1ClearedCount = 0;
+        const sectorNames = ["A", "B", "C", "D", "E", "F"];
+
+        function openSector(index) {
+            playSound('click');
+            const sector = document.getElementById('sec-' + index);
+            if (sector.classList.contains('cleared')) return;
+            
+            currentSector = index;
+            document.getElementById('radar-title').innerHTML = `掃描戰略區 ${sectorNames[index]}...`;
+            document.getElementById('radar-q').innerText = lv1Data[index].q;
+            
+            const optsContainer = document.getElementById('radar-opts');
+            optsContainer.innerHTML = '';
+            
+            let opts = lv1Data[index].opts.map((opt, oIdx) => ({opt, isCorrect: oIdx === lv1Data[index].correct})).sort(() => Math.random() - 0.5);
+            opts.forEach(obj => {
+                optsContainer.innerHTML += `<button class="opt-btn" onclick="checkSector(event, ${obj.isCorrect}, '${obj.opt.r}')">${obj.opt.t}</button>`;
+            });
+            
+            document.getElementById('radar-panel').style.display = 'block';
+            document.getElementById('radar-panel').scrollIntoView({behavior: "smooth", block: "center"});
+        }
+
+        function checkSector(e, isCorrect, reason) {
+            const sector = document.getElementById('sec-' + currentSector);
+            if (isCorrect) {
+                playSound('sweep');
+                updateScore(2, e);
+                sector.classList.add('cleared');
+                sector.classList.remove('boom');
+                sector.innerHTML = "🚩 安全排除";
+                document.getElementById('radar-panel').style.display = 'none';
+                
+                lv1ClearedCount++;
+                if (lv1ClearedCount === 6) {
+                    document.getElementById('btn-next-1').disabled = false;
+                    document.getElementById('btn-next-1').innerHTML = "雷區全數排除！進入 LV2 <i class='fa-solid fa-arrow-right'></i>";
+                }
+            } else {
+                playSound('boom');
+                updateScore(-1, e);
+                sector.classList.add('boom');
+                sector.innerHTML = "💣 踩中地雷";
+                document.getElementById('radar-panel').style.display = 'none';
+                showErrorModal('<i class="fa-solid fa-bomb"></i> 踩到地雷囉！', reason);
+                setTimeout(() => { sector.classList.remove('boom'); sector.innerHTML = `戰略區 ${sectorNames[currentSector]}`; }, 1500);
+            }
+        }
+
+        // ================= LV2 結構積木 =================
+        const pyrData = [
+            { id: 'lead_4w', t: "信豐集團與社聯昨日於香江大學舉辦「點燃60個夢想」頒獎禮" },
+            { id: 'lead_why', t: "旨在推動老幼傷健共融，為殘疾人士出謀獻策" },
+            { id: 'lead_how', t: "吸引 130 多間學校及機構參與，選出實踐 60 個項目" },
+            { id: 'body_event', t: "長者登台表演哈哈笑瑜伽，團隊合力完成拼圖" },
+            { id: 'body_quote', t: "伍同學受精神鼓舞，評審大讚充滿愛心創意" },
+            { id: 'tail_future', t: "副主席滿意成效，帶出集團60週年背景並承諾續辦" }
+        ];
+        const pyrErrs = {
+            'lead_4w': "【何人/時/地/事】這裡應該放主辦機構、時間地點與活動名稱的綜合資訊！",
+            'lead_why': "【為何】這裡應該放活動舉辦的初衷與目的(旨在...)！",
+            'lead_how': "【如何】這裡應該放亮眼的參與數據及實踐成果！",
+            'body_event': "【盛況花絮】這裡應該放具體的活動現場畫面細節！",
+            'body_quote': "【各界感言】這裡需要轉述參與者或嘉賓的客觀評價！",
+            'tail_future': "【機構展望】結尾應該放主辦方的未來規劃或企業背景！"
+        };
+        
+        let shuffledPyr = [...pyrData].sort(() => Math.random() - 0.5);
+        const bankContainer = document.getElementById('material-bank');
+        shuffledPyr.forEach(item => { bankContainer.innerHTML += `<button class="bank-item" onclick="selectItem(event, this, '${item.id}')">${item.t}</button>`; });
+
+        let selectedPyr = null, pyrCount = 0;
+        function selectItem(e, el, type) {
+            if(el.classList.contains('used')) return;
+            playSound('click');
+            document.querySelectorAll('.bank-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active'); selectedPyr = { el, type };
+        }
+        function placeItem(e, slotEl, expType) {
+            if(!selectedPyr || slotEl.classList.contains('filled')) return;
+            if(selectedPyr.type === expType) {
+                playSound('success');
+                updateScore(2, e); slotEl.innerHTML = `✔ ${selectedPyr.el.innerText}`; slotEl.classList.add('filled');
+                selectedPyr.el.classList.add('used'); selectedPyr.el.classList.remove('active'); selectedPyr = null;
+                if(++pyrCount === 6) document.getElementById('btn-next-2').disabled = false;
+            } else {
+                playSound('error');
+                updateScore(-1, e); showErrorModal('<i class="fa-solid fa-puzzle-piece"></i> 結構配對錯誤！', pyrErrs[expType]);
+            }
+        }
+
+        // ================= LV3 動態釣魚 =================
+        const fishData = [
+            { q: "信豐集團與社聯 ___ 舉辦的分享會昨日舉行。", opts: [ {t:"合作", c:true}, {t:"獨自", e:"導語中明確寫到是「兩個機構」，不能使用「獨自」。"}, {t:"被迫", e:"公益活動是自發的，使用「被迫」意思完全相反！"} ] },
+            { q: "這次活動收到 180 份計劃書，當中有不少 ___ 的計劃。", opts: [ {t:"出色", c:true}, {t:"糟糕", e:"新聞稿要建立正面形象，怎麼會說參與者的計劃「糟糕」呢？"}, {t:"草率", e:"「草率」是貶義詞，用在此處不符合表揚活動成果的目的。"} ] },
+            { q: "「點燃 60 個夢想」的活動目的是 ___ 長幼及傷健共融。", opts: [ {t:"促進", c:true}, {t:"打擊", e:"「打擊」是用於犯罪或壞事，與活動目的完全相反！"}, {t:"強迫", e:"共融的社會是自願建立的，不能用「強迫」。"} ] },
+            { q: "這次活動 ___ 130 多間學校及機構參與。", opts: [ {t:"吸引", c:true}, {t:"帶領", e:"活動本身無生命，無法主動「帶領」，用「吸引」來展現影響力才客觀。"}, {t:"誘惑", e:"「誘惑」帶有不良動機的貶義，絕對不能出現在商業新聞稿中！"} ] },
+            { q: "瑜伽方式適合男女老幼，令大眾了解瑜伽不再是年輕人的 ___ 。", opts: [ {t:"專利", c:true}, {t:"特權", e:"「特權」帶有階級對立的敏感意味，用「專利」較為中性且貼切。"}, {t:"專長", e:"這裡是在強調「誰都可以做」，比喻為年輕人的「專利」更符合語意。"} ] },
+            { q: "同學們都被周伯伯堅持不懈的精神所 ___ 。", opts: [ {t:"鼓舞", c:true}, {t:"嚇倒", e:"這完全是負面情緒詞彙！同學們是被感動，不是被驚嚇。"}, {t:"迷惑", e:"「迷惑」指分辨不清是非，與被長者精神感動的正面氛圍不符。"} ] },
+            { q: "李同學認為，共融的社會應該由大眾 ___ 打造。", opts: [ {t:"攜手", c:true}, {t:"單獨", e:"「共融社會」需要大家一起努力，不可能「單獨」打造。"}, {t:"隨便", e:"社會議題不能「隨便」對待！"} ] },
+            { q: "江女士 ___ ，希望透過計劃幫助更多人達成夢想。", opts: [ {t:"表示", c:true}, {t:"覺得", e:"「覺得」過於口語化，新聞轉述應使用正式的「表示/指出」。"}, {t:"幻想", e:"「幻想」是不切實際的空想，與受訪分享感受的語境不符。"} ] },
+            { q: "羅怡於採訪中表示，每個夢想計劃都 ___ 愛心和創意。", opts: [ {t:"充滿", c:true}, {t:"缺乏", e:"評審是給予高度讚賞，不能用「缺乏」！"}, {t:"隱藏", e:"愛心和創意是展現出來的，不是「隱藏」起來的。"} ] },
+            { q: "該集團主題為「承信豐業」， ___ 繼往開來。", opts: [ {t:"寓意", c:true}, {t:"猜測", e:"主題的背後是官方確定的含義，不能用「猜測」。"}, {t:"假裝", e:"「假裝」帶有欺騙的意味，嚴重損害企業誠信形象！"} ] }
+        ];
+        
+        let fishCurrentQ = 0;
+        let isFishing = false;
+
+        function toggleFullScreenGame() {
+            playSound('click');
+            const gameArea = document.getElementById('fish-game');
+            gameArea.classList.toggle('fullscreen');
+        }
+
+        function loadFishQuestion() {
+            if (fishCurrentQ >= fishData.length) {
+                document.querySelector('.fishing-game-area').innerHTML = "<div style='display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:white; font-size:2rem; font-weight:bold; text-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 20;'><i class='fa-solid fa-trophy' style='font-size:5rem; color:#fbc531; margin-bottom:20px;'></i>🎉 詞彙大豐收！所有魚兒已入網！</div>";
+                document.getElementById('btn-next-3').disabled = false;
+                document.getElementById('fish-game').classList.remove('fullscreen');
+                stopBubbleSound();
+                return;
+            }
+
+            document.getElementById('fish-progress').innerText = `${fishCurrentQ + 1}`;
+            const qData = fishData[fishCurrentQ];
+            document.getElementById('fish-q-num').innerText = `Q${fishCurrentQ + 1}`;
+            document.getElementById('fish-q-text').innerText = qData.q;
+            
+            const pool = document.getElementById('fish-pool');
+            pool.innerHTML = "";
+            let opts = [...qData.opts].sort(() => Math.random() - 0.5);
+            
+            opts.forEach((opt, index) => {
+                const wrapper = document.createElement('div');
+                const isRight = index % 2 === 0;
+                wrapper.className = 'fish-wrapper ' + (isRight ? 'swimR' : 'swimL');
+                wrapper.dataset.correct = opt.c ? "true" : "false";
+                wrapper.dataset.exp = opt.e || "";
+                wrapper.dataset.dead = "false";
+                
+                const fish = document.createElement('div');
+                fish.className = 'fish-body';
+                fish.innerHTML = `<i class="fa-solid fa-fish"></i> <span>${opt.t}</span>`;
+                
+                const tail = document.createElement('div');
+                tail.className = 'fish-tail';
+                
+                if (isRight) {
+                    wrapper.appendChild(tail); wrapper.appendChild(fish);
+                } else {
+                    wrapper.appendChild(fish); wrapper.appendChild(tail);
+                }
+                
+                const startY = 150 + index * 90; 
+                wrapper.style.top = startY + "px";
+                wrapper.style.animation = `${isRight ? 'swimR' : 'swimL'} ${7 + Math.random() * 4}s linear infinite`;
+                
+                pool.appendChild(wrapper);
+            });
+            isFishing = false;
+            document.getElementById('pull-rod-btn').disabled = false;
+            document.getElementById('pull-rod-btn').style.opacity = '1';
+        }
+
+        function pullRod(e) {
+            if(isFishing) return;
+            isFishing = true;
+            document.getElementById('pull-rod-btn').disabled = true;
+            document.getElementById('pull-rod-btn').style.opacity = '0.5';
+            playSound('throw');
+
+            const gameArea = document.getElementById('fish-game');
+            const line = document.getElementById('fishing-line');
+            const gameRect = gameArea.getBoundingClientRect();
+            const hookX = gameRect.width / 2;
+
+            let caughtFish = null;
+            document.querySelectorAll('.fish-wrapper').forEach(f => {
+                if (f.dataset.dead === "true" || f.style.opacity === "0") return;
+
+                f.style.animationPlayState = 'paused'; 
+                const fRect = f.getBoundingClientRect();
+                
+                const relLeft = fRect.left - gameRect.left;
+                const relRight = fRect.right - gameRect.left;
+                
+                if (hookX >= relLeft && hookX <= relRight) {
+                    if (!caughtFish || fRect.top < caughtFish.getBoundingClientRect().top) {
+                        caughtFish = f;
+                    }
+                }
+            });
+
+            let targetY = gameRect.height * 0.7; 
+            if (caughtFish) {
+                targetY = caughtFish.getBoundingClientRect().top - gameRect.top + 20; 
+                caughtFish.dataset.dead = "true"; 
+            }
+            
+            line.style.transition = "height 0.2s ease-in";
+            line.style.height = targetY + "px";
+
+            setTimeout(() => {
+                if (caughtFish) {
+                    const fRect = caughtFish.getBoundingClientRect();
+                    caughtFish.style.left = (fRect.left - gameRect.left) + "px";
+                    caughtFish.style.top = (fRect.top - gameRect.top) + "px";
+                    caughtFish.style.animation = "none";
+
+                    const isCorrect = caughtFish.dataset.correct === "true";
+                    const exp = caughtFish.dataset.exp;
+
+                    if (isCorrect) {
+                        playSound('catch'); updateScore(2, e);
+                        
+                        setTimeout(() => {
+                            caughtFish.style.transition = "all 0.5s ease-out";
+                            caughtFish.style.left = "50%"; 
+                            caughtFish.style.top = "60px";
+                            caughtFish.style.transform = "translate(-50%, -50%) rotate(-90deg)";
+                            caughtFish.style.opacity = "0";
+                            
+                            line.style.transition = "height 0.5s ease-out"; line.style.height = "0px";
+                            setTimeout(() => { fishCurrentQ++; loadFishQuestion(); }, 600);
+                        }, 50);
+                    } else {
+                        playSound('fail'); updateScore(-1, e);
+                        
+                        setTimeout(() => {
+                            caughtFish.style.transition = "all 0.4s ease-in";
+                            caughtFish.style.top = (gameRect.height + 100) + "px"; 
+                            caughtFish.style.opacity = "0";
+                            
+                            line.style.transition = "height 0.5s ease-out"; line.style.height = "0px";
+                            setTimeout(() => { showErrorModal('<i class="fa-solid fa-water"></i> 哎呀！釣錯魚囉！', exp, 'resumeFish'); }, 500);
+                        }, 50);
+                    }
+                } else {
+                    playSound('fail'); updateScore(0, e); 
+                    
+                    const missText = document.createElement('div');
+                    missText.innerText = "揮空了！";
+                    missText.style.position = "absolute";
+                    missText.style.left = "50%"; missText.style.top = targetY + "px";
+                    missText.style.transform = "translate(-50%, -50%)";
+                    missText.style.color = "white"; missText.style.fontWeight = "900";
+                    missText.style.fontSize = "2rem"; missText.style.textShadow = "0 2px 10px rgba(0,0,0,0.5)";
+                    missText.style.zIndex = 100;
+                    gameArea.appendChild(missText);
+                    
+                    setTimeout(() => {
+                        missText.style.transition = "all 0.5s ease-out";
+                        missText.style.top = (targetY - 50) + "px";
+                        missText.style.opacity = "0";
+                    }, 50);
+                    setTimeout(() => missText.remove(), 600);
+
+                    line.style.transition = "height 0.4s ease-out"; line.style.height = "0px";
+                    
+                    setTimeout(() => { 
+                        isFishing = false; 
+                        document.getElementById('pull-rod-btn').disabled = false;
+                        document.getElementById('pull-rod-btn').style.opacity = '1';
+                        document.querySelectorAll('.fish-wrapper').forEach(f => {
+                            if(f.dataset.dead !== "true") f.style.animationPlayState = 'running';
+                        });
+                    }, 500);
+                }
+            }, 250);
+        }
+
+        // ================= LV4 實戰寫作 =================
+        const writeData = [
+            { id: 'w-title', t: "1. 標題", h: "交代活動名稱 + 突顯數據亮點", buffs: [
+                {w: "「點燃 60 個夢想」", eg: "信豐集團與社聯合辦「點燃 60 個夢想」活動。"},
+                {w: "分享會暨頒獎典禮", eg: "點燃 60 個夢想分享會暨頒獎典禮昨日舉行。"},
+                {w: "圓滿結束", eg: "點燃 60 個夢想頒獎典禮圓滿結束。"},
+                {w: "吸引逾130間機構", eg: "活動吸引逾130間機構參與，反應熱烈。"},
+                {w: "助弱勢圓夢", eg: "點燃 60 個夢想 助弱勢圓夢。"},
+                {w: "獲廣大迴響", eg: "點燃 60 個夢想獲社會各界廣大迴響。"},
+                {w: "締造佳績", eg: "點燃 60 個夢想締造佳績。"},
+                {w: "全港首創", eg: "全港首創「點燃 60 個夢想」計劃。"},
+                {w: "盛大舉行", eg: "點燃 60 個夢想頒獎禮盛大舉行。"},
+                {w: "成果豐碩", eg: "點燃 60 個夢想計劃成果豐碩。"}
+            ]},
+            { id: 'w-lead', t: "2. 導語", h: "5W1H (何人/事/時/地) + 活動意義 + 亮眼成果", buffs: [
+                {w: "合作舉辦", eg: "信豐集團與香江社會服務聯會合作舉辦了這項活動。"},
+                {w: "昨日於香江大學", eg: "頒獎典禮昨日於香江大學順利舉行。"},
+                {w: "順利舉行", eg: "分享會暨頒獎典禮昨日於香江大學順利舉行。"},
+                {w: "旨在", eg: "這次活動旨在促進老幼傷健共融。"},
+                {w: "促進老幼傷健共融", eg: "活動旨在促進老幼傷健共融，為殘疾人士出謀獻策。"},
+                {w: "共收到180份計劃書", eg: "大會共收到180份計劃書，反應熱烈。"},
+                {w: "從中選出60個實踐項目", eg: "主辦方從中選出60個實踐項目，幫助弱勢社群。"},
+                {w: "意義非凡", eg: "這次活動意義非凡，獲得各界支持。"},
+                {w: "引起熱烈反響", eg: "活動推出後引起熱烈反響，吸引逾130間機構參與。"},
+                {w: "為殘疾人士出謀獻策", eg: "中學生積極參與，為殘疾人士出謀獻策。"}
+            ]},
+            { id: 'w-body1', t: "3. 主體一：活動盛況", h: "具體描述現場花絮 (哈哈笑瑜伽、拼圖)", buffs: [
+                {w: "氣氛熱烈", eg: "現場氣氛熱烈，男女老幼打成一片。"},
+                {w: "盛況空前", eg: "頒獎典禮盛況空前，各團隊齊聚一堂。"},
+                {w: "合力完成夢想拼圖", eg: "各團隊在台上合力完成大型夢想拼圖。"},
+                {w: "長者登台表演哈哈笑瑜伽", eg: "長者中心成員登台表演哈哈笑瑜伽。"},
+                {w: "男女老幼", eg: "這項運動適合男女老幼參與，打破年齡界限。"},
+                {w: "打成一片", eg: "參與者與長者打成一片，場面溫馨。"},
+                {w: "場面溫馨", eg: "現場充滿歡笑聲，場面溫馨感人。"},
+                {w: "歡笑聲不斷", eg: "台下觀眾看得投入，歡笑聲不斷。"},
+                {w: "趣味十足", eg: "整個表演環節趣味十足，令人印象深刻。"},
+                {w: "創意無限", eg: "學生們展現出創意無限的實踐方案。"}
+            ]},
+            { id: 'w-body2', t: "4. 主體二：各界感言", h: "客觀引述伍同學與嘉賓羅怡的評價", buffs: [
+                {w: "受訪時表示", eg: "伍同學受訪時表示，對活動感觸良多。"},
+                {w: "指出", eg: "嘉賓指出，年輕人的熱誠令人感動。"},
+                {w: "深受鼓舞", eg: "同學們深受長者堅持不懈的精神鼓舞。"},
+                {w: "「殘而不廢」", eg: "周伯伯展現出「殘而不廢」的生活態度。"},
+                {w: "評審大為讚賞", eg: "評審羅怡大為讚賞學生的用心。"},
+                {w: "充滿愛心與創意", eg: "每個夢想計劃都充滿愛心與創意。"},
+                {w: "充分展現", eg: "學生充分展現了關愛社會的精神。"},
+                {w: "獲益良多", eg: "參與的學生均表示從中獲益良多。"},
+                {w: "印象深刻", eg: "長者的笑容讓義工們印象深刻。"},
+                {w: "給予高度評價", eg: "社會各界對此活動給予高度評價。"}
+            ]},
+            { id: 'w-tail', t: "5. 結尾：機構展望", h: "集團 60 週年背景 + 來年繼續舉辦的承諾", buffs: [
+                {w: "該集團", eg: "該集團承諾未來將投放更多資源於公益事業。"},
+                {w: "積極履行社會責任", eg: "信豐集團一直積極履行社會責任。"},
+                {w: "秉守誠信", eg: "集團將繼續秉守誠信，服務市民。"},
+                {w: "承信豐業", eg: "適逢集團60週年，以「承信豐業」為主題。"},
+                {w: "來年再接再厲", eg: "主辦機構表示來年會再接再厲，延續愛心。"},
+                {w: "承諾來年繼續舉辦", eg: "副主席滿意活動成效，承諾來年繼續舉辦。"},
+                {w: "副主席總結時指出", eg: "孟副主席總結時指出，活動成果令人振奮。"},
+                {w: "對活動成效感到滿意", eg: "孟海楊對本屆活動的成效感到非常滿意。"},
+                {w: "適逢集團60週年", eg: "適逢集團60週年，此次活動別具意義。"},
+                {w: "感謝各界支持", eg: "大會特別感謝各界支持，讓活動順利舉行。"}
+            ]}
+        ];
+
+        const wContainer = document.getElementById('writing-sections');
+        writeData.forEach(item => {
+            let buffHtml = item.buffs.map(b => `<button class="buff-btn" onmousedown="event.preventDefault();" onclick="handleBuffClick(this, '${b.w}', '${b.eg}', '${item.id}')">${b.w}</button>`).join('');
+            wContainer.innerHTML += `
+                <div class="write-section">
+                    <div class="write-header">
+                        <div><h3 class="write-title">${item.t}</h3><span class="write-hint">提示：${item.h}</span></div>
+                    </div>
+                    <div class="buff-zone"><span class="buff-label">✨ 自我增值：</span>${buffHtml}</div>
+                    <div class="buff-preview" id="preview-${item.id}"></div>
+                    <textarea id="${item.id}" class="editor-box" rows="4" placeholder="請在此撰寫..."></textarea>
+                </div>
+            `;
+        });
+
+        let activeBuff = null;
+
+        function handleBuffClick(btn, word, example, targetId) {
+            const previewBox = document.getElementById('preview-' + targetId);
+            
+            if (activeBuff && activeBuff.btn === btn) {
+                playSound('success');
+                const ta = document.getElementById(targetId);
+                const startPos = ta.selectionStart;
+                ta.value = ta.value.substring(0, startPos) + word + ta.value.substring(ta.selectionEnd);
+                ta.focus(); ta.selectionStart = ta.selectionEnd = startPos + word.length;
+                
+                previewBox.style.display = 'none';
+                btn.classList.remove('active-buff');
+                btn.classList.add('used');
+                btn.innerText = "✔ 插入成功";
+                
+                setTimeout(() => { btn.innerText = word; btn.classList.remove('used'); }, 1000);
+                activeBuff = null;
+            } else {
+                playSound('click');
+                document.querySelectorAll('.buff-btn').forEach(b => b.classList.remove('active-buff'));
+                document.querySelectorAll('.buff-preview').forEach(p => p.style.display = 'none');
+                
+                btn.classList.add('active-buff');
+                previewBox.innerHTML = `<strong>💡 例句示範：</strong> ${example} <br><span style="color:#e17055; font-size:0.85rem;"><i class="fa-solid fa-hand-pointer"></i> (再次點擊該詞彙，即可將詞彙插入到下方寫作區)</span>`;
+                previewBox.style.display = 'block';
+                activeBuff = { btn, word, targetId };
+            }
+        }
+
+        function exportHTMLToWord() {
+            playSound('click');
+            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>商業新聞稿</title><style>body { font-family: 'Microsoft JhengHei', sans-serif; line-height: 1.8; color: #2d3436; } h3 { color: #0984e3; border-bottom: 2px dashed #cbd5e0; padding-bottom: 8px; margin-top: 25px;} p { text-indent: 2em; font-size: 12pt; color: #4a5568; line-height: 2;}</style></head><body><h2 style='text-align:center; color:#2b2d42;'>商業新聞稿：點燃 60 個夢想</h2><hr>";
+            var contentHTML = "";
+            writeData.forEach(item => {
+                var text = document.getElementById(item.id).value.trim().replace(/\n/g, '<br>');
+                contentHTML += "<h3>" + item.t.substring(3) + "</h3><p>" + (text || "<span style='color:#a0aec0;'>[尚未撰寫]</span>") + "</p>";
+            });
+            var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(header + contentHTML + "</body></html>");
+            var link = document.createElement("a"); link.href = source; link.download = '商業新聞稿_學生實戰作答.doc';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
