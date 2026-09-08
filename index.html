@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PR總編室：商業新聞稿實戰特訓 2.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- 改用 html2canvas 進行圖片截圖生成 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --primary: #4361ee; --secondary: #7209b7; --success: #00b894;
@@ -52,8 +54,8 @@
         @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -60px) scale(1.5); } }
 
         /* 錯誤解析彈窗 */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 5000; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
-        .modal-box { background: white; border-radius: 20px; padding: 30px 40px; max-width: 500px; width: 90%; border-top: 10px solid var(--danger); box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; animation: bounceIn 0.4s; position: relative; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 5000; backdrop-filter: blur(5px); justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;}
+        .modal-box { background: white; border-radius: 20px; padding: 30px 40px; max-width: 500px; width: 100%; border-top: 10px solid var(--danger); box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; animation: bounceIn 0.4s; position: relative; }
         .modal-title { color: var(--danger); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.6rem; }
         .modal-msg { font-size: 1.1rem; font-weight: bold; color: #4a5568; line-height: 1.6; text-align: justify; margin-bottom: 25px; background: #fff5f5; padding: 15px; border-radius: 10px; border-left: 5px solid var(--danger); }
         .close-btn { background: var(--danger); border: none; color: white; padding: 12px 30px; cursor: pointer; border-radius: 30px; font-size: 1.1rem; font-weight: 900; transition: 0.3s; box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3);}
@@ -66,12 +68,18 @@
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .level-title { font-size: 2rem; color: var(--primary); margin-top: 0; border-bottom: 2px dashed #dfe6e9; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
+        .level-title { font-size: 2rem; color: var(--primary); margin-top: 0; border-bottom: 2px dashed #dfe6e9; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; justify-content: space-between; }
+        .level-title-text { display: flex; align-items: center; gap: 15px; }
         .level-desc { background: #e0f2fe; border-left: 6px solid var(--primary); padding: 15px 25px; border-radius: 10px; font-weight: bold; color: var(--primary); margin-bottom: 30px; font-size: 1.1rem; line-height: 1.7; }
         
         .btn-next { display: block; width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 1.25rem; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 30px; box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3); }
         .btn-next:hover:not(:disabled) { background: #304ffe; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4); }
         .btn-next:disabled { background: #cbd5e0; cursor: not-allowed; box-shadow: none; transform: none; }
+        
+        /* 重新挑戰與儲存按鈕樣式 */
+        .btn-action { background: #f1f2f6; color: #2d3436; border: 2px solid #dfe6e9; padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px;}
+        .btn-action:hover { background: #e2e8f0; transform: translateY(-2px); }
+        .action-btns { display: flex; gap: 10px; flex-wrap: wrap;}
 
         /* LV1: 戰略軍區掃雷遊戲 */
         .military-map { background-color: #4b6584; background-image: repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(0,0,0,0.1) 15px, rgba(0,0,0,0.1) 30px); padding: 20px; border-radius: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; border: 6px solid #2f3640; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); margin-bottom: 20px;}
@@ -141,7 +149,7 @@
         .fishing-game-area.fullscreen .boat { top: 30px; transform: translateX(-50%) scale(1.5); }
         .fishing-game-area.fullscreen .fishing-line { top: 90px; width: 4px; }
         .fishing-game-area.fullscreen .fish-question-board { top: 40px; font-size: 1.8rem; padding: 20px 40px; }
-        .fishing-game-area.fullscreen .pull-btn { bottom: 80px; font-size: 2.2rem; padding: 20px 80px; z-index: 3020; } /* 原本是 50px，調高為 80px */
+        .fishing-game-area.fullscreen .pull-btn { bottom: 80px; font-size: 2.2rem; padding: 20px 80px; z-index: 3020; } 
 
         .fish-question-board { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 15px 30px; border-radius: 30px; font-size: 1.25rem; font-weight: 900; color: #1e3c72; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10; text-align: center; width: 85%; max-width: 800px; border: 3px solid var(--warning); display: flex; align-items: center; justify-content: center; gap: 15px; transition: 0.3s;}
         .fish-q-num { background: var(--warning); color: #d35400; padding: 4px 12px; border-radius: 20px; font-size: 1.1rem; flex-shrink: 0;}
@@ -175,7 +183,7 @@
         @keyframes swimL { 0% { left: 120%; } 100% { left: -30%; } }
         @keyframes bobY { 0% { transform: translateY(-10px); } 100% { transform: translateY(10px); } }
         
-        .pull-btn { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--warning); border: 4px solid #d35400; color: #d35400; font-size: 1.8rem; font-weight: 900; padding: 15px 50px; border-radius: 50px; cursor: pointer; z-index: 50; box-shadow: 0 10px 20px rgba(0,0,0,0.4); transition: 0.2s; } /* 基礎高度調升，z-index 提高 */
+        .pull-btn { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--warning); border: 4px solid #d35400; color: #d35400; font-size: 1.8rem; font-weight: 900; padding: 15px 50px; border-radius: 50px; cursor: pointer; z-index: 50; box-shadow: 0 10px 20px rgba(0,0,0,0.4); transition: 0.2s; } 
         .pull-btn:hover { background: #ffeaa7; transform: translateX(-50%) scale(1.05); }
         .pull-btn:active { transform: translateX(-50%) translateY(5px); box-shadow: 0 5px 10px rgba(0,0,0,0.3); }
 
@@ -210,18 +218,15 @@
         @keyframes morph { 0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; } 34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; } 67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; } 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; } }
         .desktop-arrow { display: inline-block; }
 
-        /* ================= 響應式手機版 CSS (防出格、防遮擋、安全邊距) ================= */
+        /* ================= 響應式手機版 CSS ================= */
         @media (max-width: 850px) {
             .game-hud { flex-wrap: wrap; height: auto; padding: 10px; }
             .hud-title { width: 50%; font-size: 1.1rem;}
             .score-board { width: auto; margin-left: auto; font-size: 1rem; padding: 4px 12px;}
-            /* 讓導航列在手機可以橫向平滑滑動，不被擠壓 */
             .progress-bar { width: 100%; margin-top: 10px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 5px; justify-content: flex-start;}
             .progress-bar::-webkit-scrollbar { display: none; }
             .step-dot { flex-shrink: 0; font-size: 0.85rem; padding: 6px 12px; }
             body { padding-top: 120px; }
-
-            /* 釣魚區防遮擋設計 (縮小問題框、上提按鈕) */
             .fish-question-board { font-size: 0.9rem; padding: 8px 12px; top: 5px; width: 95%; gap: 8px;}
             .fish-q-num { font-size: 0.85rem; padding: 2px 8px; }
             .boat { width: 80px; height: 25px; top: 15px; }
@@ -230,30 +235,24 @@
             .target-zone { width: 80px; }
             .fish-body { font-size: 0.9rem; padding: 6px 12px; gap: 5px;}
             .fish-body i { font-size: 1.1rem; }
-            /* 一般模式下的拉竿按鈕往上提 */
             .pull-btn { font-size: 1.4rem; padding: 10px 30px; bottom: 40px; z-index: 50; }
-
-            /* 手機版全螢幕釣魚，極致防遮擋 (避開 iOS Home bar 與 Android 導航列) */
             .fishing-game-area.fullscreen .exit-fs-btn { top: 10px; right: 10px; padding: 5px 10px; font-size: 0.8rem; z-index: 3020;}
             .fishing-game-area.fullscreen .fish-question-board { font-size: 1rem; padding: 10px 15px; top: 50px; width: 95%; }
             .fishing-game-area.fullscreen .boat { top: 45px; transform: translateX(-50%) scale(1); }
             .fishing-game-area.fullscreen .fisherman { font-size: 2rem; }
-            /* 全螢幕下的拉竿按鈕大幅度上提至 bottom: 100px */
             .fishing-game-area.fullscreen .pull-btn { font-size: 1.6rem; padding: 15px 40px; bottom: 100px; z-index: 3020; }
-            
-            /* 掃雷軍區手機版 (雙排) */
             .military-map { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; }
             .sector { height: 80px; font-size: 1rem; }
-
-            /* 倒金字塔手機版 */
             .pyr-slot { font-size: 0.85rem; padding: 10px 5px; min-height: 80px; }
             .pyr-label { font-size: 0.75rem; padding: 2px 8px; }
+            
+            .btn-next { padding: 12px; font-size: 1.1rem; }
         }
 
         @media (max-width: 768px) { .desktop-arrow { display: none !important; } }
 
         @media print {
-            .game-hud, .btn-next, .buff-zone, .buff-preview, .write-hint, .military-map, .radar-panel, .pyramid-wrapper, .material-bank, .fishing-game-area, .level-desc, .fullscreen-btn-wrap, .desktop-arrow { display: none !important; }
+            .game-hud, .btn-next, .btn-retry, .btn-save, .buff-zone, .buff-preview, .write-hint, .military-map, .radar-panel, .pyramid-wrapper, .material-bank, .fishing-game-area, .level-desc, .fullscreen-btn-wrap, .desktop-arrow, .action-btns { display: none !important; }
             .page { display: block !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
             .write-section { border: none !important; padding: 0 !important; margin-bottom: 20px !important; box-shadow: none !important; }
             .editor-box { border: 1px solid #ccc !important; }
@@ -286,11 +285,27 @@
         <div class="score-board"><i class="fa-solid fa-coins"></i> 積分: <span id="score-display">0</span></div>
     </div>
 
+    <!-- 錯誤解析彈窗 -->
     <div class="modal-overlay" id="error-modal">
         <div class="modal-box">
             <h2 class="modal-title" id="modal-title"><i class="fa-solid fa-triangle-exclamation"></i> 哎呀！判斷失誤囉</h2>
             <p class="modal-msg" id="error-msg">這裡會顯示錯誤原因。</p>
             <button class="close-btn" onclick="closeModal()">明白了，繼續挑戰</button>
+        </div>
+    </div>
+
+    <!-- 圖片生成結果彈窗 (為手機優化) -->
+    <div class="modal-overlay" id="image-modal">
+        <div class="modal-box" style="max-width: 90%; max-height: 90vh; overflow-y: auto; text-align: center; display: flex; flex-direction: column; align-items: center; border-top: 10px solid var(--success);">
+            <h2 class="modal-title" style="color: var(--success);"><i class="fa-solid fa-image"></i> 新聞稿圖片已生成！</h2>
+            <p style="font-weight: bold; color: #d35400; margin-bottom: 15px; background: #fff9e6; padding: 10px; border-radius: 10px; width: 100%;">
+                📱 手機用戶請【長按下方圖片】儲存，<br>或點擊下方下載按鈕。
+            </p>
+            <img id="generated-image" style="width: 100%; max-width: 600px; border: 2px solid #cbd5e0; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);" alt="生成的商業新聞稿圖片">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                <a id="btn-download-img" class="btn-next" style="background: var(--success); margin-top: 0; width: auto; padding: 12px 25px; text-decoration: none; color: white;" href="#" download="商業新聞稿_學生實戰作答.png"><i class="fa-solid fa-download"></i> 下載圖片</a>
+                <button class="close-btn" style="background: #636e72; margin-top: 0; width: auto;" onclick="closeImageModal()">關閉視窗</button>
+            </div>
         </div>
     </div>
 
@@ -325,7 +340,13 @@
         </div>
 
         <div id="page1" class="page" style="border-top-color: var(--warning);">
-            <h1 class="level-title" style="color: var(--warning); border-color: var(--warning);"><i class="fa-solid fa-bomb"></i> LV 1: 情報掃雷 (戰略軍區)</h1>
+            <h1 class="level-title" style="color: var(--warning); border-color: var(--warning);">
+                <div class="level-title-text"><i class="fa-solid fa-bomb"></i> LV 1: 情報掃雷 (戰略軍區)</div>
+                <div class="action-btns">
+                    <button class="btn-action" onclick="saveGameData('lv1')"><i class="fa-solid fa-floppy-disk"></i> 儲存進度</button>
+                    <button class="btn-action" onclick="resetLv1()"><i class="fa-solid fa-rotate-right"></i> 重新挑戰</button>
+                </div>
+            </h1>
             <div class="level-desc" style="background: #fff9e6; color: #d35400; border-color: var(--warning);">
                 公關的第一步是篩選具備「新聞價值」的情報！請點擊下方的戰略區塊，選出正確的選項。<br>
                 （答對插上安全旗🚩，答錯引爆地雷💣並重新挑戰）
@@ -351,7 +372,11 @@
 
         <div id="page2" class="page" style="border-top-color: var(--secondary);">
             <h1 class="level-title" style="color: var(--secondary); border-color: var(--secondary);">
-                <i class="fa-solid fa-layer-group"></i> LV 2: 藍圖解碼 (細化 5W1H)
+                <div class="level-title-text"><i class="fa-solid fa-layer-group"></i> LV 2: 藍圖解碼 (細化 5W1H)</div>
+                <div class="action-btns">
+                    <button class="btn-action" onclick="saveGameData('lv2')"><i class="fa-solid fa-floppy-disk"></i> 儲存進度</button>
+                    <button class="btn-action" onclick="resetLv2()"><i class="fa-solid fa-rotate-right"></i> 重新挑戰</button>
+                </div>
             </h1>
             <div class="level-desc" style="background: #f0edff; color: var(--secondary); border-color: var(--secondary);">
                 新聞稿的結構是由 5W1H 嚴謹組成的「倒金字塔」。請點選下方的【素材積木】，然後點擊對應的【金字塔區塊】將其放入。（放對 <span style="color:var(--success);">+2分</span>，放錯 <span style="color:var(--danger);">-1分</span>）
@@ -390,7 +415,11 @@
 
         <div id="page3" class="page" style="border-top-color: var(--info);">
             <h1 class="level-title" style="color: var(--info); border-color: var(--info);">
-                <i class="fa-solid fa-fish-fins"></i> LV 3: 歡樂釣王傳奇 (用語特訓)
+                <div class="level-title-text"><i class="fa-solid fa-fish-fins"></i> LV 3: 歡樂釣王傳奇 (用語特訓)</div>
+                <div class="action-btns">
+                    <button class="btn-action" onclick="saveGameData('lv3')"><i class="fa-solid fa-floppy-disk"></i> 儲存進度</button>
+                    <button class="btn-action" onclick="resetLv3()"><i class="fa-solid fa-rotate-right"></i> 重新挑戰</button>
+                </div>
             </h1>
             <div class="level-desc" style="background: #e0fbfc; color: #0077b6; border-color: var(--info);">
                 請閱讀看板上的題目，仔細觀察在水中游動的「正確詞彙魚」。<br>
@@ -443,7 +472,10 @@
 
         <div id="page4" class="page" style="border-top-color: var(--danger);">
             <h1 class="level-title" style="color: var(--danger); border-color: var(--danger);">
-                <i class="fa-solid fa-pen-fancy"></i> 終極實戰：商業新聞稿寫作
+                <div class="level-title-text"><i class="fa-solid fa-pen-fancy"></i> 終極實戰：商業新聞稿寫作</div>
+                <div class="action-btns">
+                    <button class="btn-action" onclick="saveGameData('lv4')"><i class="fa-solid fa-floppy-disk"></i> 儲存寫作</button>
+                </div>
             </h1>
             <div class="level-desc" style="background: #fff5f5; color: #c0392b; border-color: var(--danger);">
                 大師，展現實力的時刻到了！請根據剛才理清的「倒金字塔結構」，在下方完成新聞稿。<br>
@@ -451,9 +483,15 @@
                 <strong style="color:var(--success);">連續點擊第二次</strong>，該詞彙就會自動跳進你的寫作空格中！
             </div>
             <div id="writing-sections"></div>
-            <button class="btn-next" style="background: var(--success);" onclick="exportHTMLToWord()">
-                <i class="fa-solid fa-file-word"></i> 恭喜大師！匯出 Word 檔繳交
-            </button>
+            
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button class="btn-next" style="background: var(--success); margin-top: 0; flex: 1; min-width: 250px;" onclick="exportHTMLToWord()">
+                    <i class="fa-solid fa-file-word"></i> 方法一：匯出 Word 檔
+                </button>
+                <button class="btn-next" style="background: #e74c3c; margin-top: 0; flex: 1; min-width: 250px;" onclick="exportHTMLToImage()">
+                    <i class="fa-solid fa-file-image"></i> 方法二：生成圖片檔 (手機推薦)
+                </button>
+            </div>
         </div>
 
         <div id="page5" class="page" style="border-top-color: var(--candy-blue);">
@@ -769,6 +807,10 @@
         let score = 0;
         let bubbleTimer = null;
         let unlockedLevels = ['page0', 'page5']; // 預設解鎖 page0 任務簡報 與 page5 資料庫
+        
+        let initialScoreLv1 = 0;
+        let initialScoreLv2 = 0;
+        let initialScoreLv3 = 0;
 
         // 音效系統 (Web Audio API 合成)
         function playSound(type) {
@@ -890,8 +932,15 @@
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            if(pageId === 'page3') {
-                if(fishCurrentQ === 0) loadFishQuestion();
+            if(pageId === 'page1') {
+                 if (lv1ClearedCount === 0) initialScoreLv1 = score;
+            } else if(pageId === 'page2') {
+                 if (pyrCount === 0) initialScoreLv2 = score;
+            } else if(pageId === 'page3') {
+                if(fishCurrentQ === 0) {
+                     initialScoreLv3 = score;
+                     loadFishQuestion();
+                }
                 startBubbleSound();
             } else {
                 stopBubbleSound();
@@ -971,6 +1020,7 @@
         
         let currentSector = null;
         let lv1ClearedCount = 0;
+        let lv1SectorStatus = [false, false, false, false, false, false];
         const sectorNames = ["A", "B", "C", "D", "E", "F"];
 
         function openSector(index) {
@@ -1004,7 +1054,11 @@
                 sector.innerHTML = "🚩 安全排除";
                 document.getElementById('radar-panel').style.display = 'none';
                 
-                lv1ClearedCount++;
+                if (!lv1SectorStatus[currentSector]) {
+                    lv1SectorStatus[currentSector] = true;
+                    lv1ClearedCount++;
+                }
+                
                 if (lv1ClearedCount === 6) {
                     document.getElementById('btn-next-1').disabled = false;
                     document.getElementById('btn-next-1').innerHTML = "雷區全數排除！進入 LV2 <i class='fa-solid fa-arrow-right'></i>";
@@ -1018,6 +1072,22 @@
                 showErrorModal('<i class="fa-solid fa-bomb"></i> 踩到地雷囉！', reason);
                 setTimeout(() => { sector.classList.remove('boom'); sector.innerHTML = `戰略區 ${sectorNames[currentSector]}`; }, 1500);
             }
+        }
+        
+        function resetLv1() {
+            playSound('click');
+            lv1ClearedCount = 0;
+            lv1SectorStatus = [false, false, false, false, false, false];
+            for(let i=0; i<6; i++) {
+                const sector = document.getElementById('sec-' + i);
+                sector.classList.remove('cleared', 'boom');
+                sector.innerHTML = `戰略區 ${sectorNames[i]}`;
+            }
+            document.getElementById('radar-panel').style.display = 'none';
+            document.getElementById('btn-next-1').disabled = true;
+            document.getElementById('btn-next-1').innerHTML = "雷區全數排除！進入 LV2 <i class='fa-solid fa-arrow-right'></i>";
+            score = initialScoreLv1;
+            document.getElementById('score-display').innerText = score;
         }
 
         // ================= LV2 結構積木 =================
@@ -1038,9 +1108,18 @@
             'tail_future': "【機構展望】結尾應該放主辦方的未來規劃或企業背景！"
         };
         
+        const pyrLabels = {
+            'lead_4w': "<span class='pyr-label'>導語：4W</span><br>何人/時/地/事",
+            'lead_why': "<span class='pyr-label'>導語：為何</span><br>活動目的/意義",
+            'lead_how': "<span class='pyr-label'>導語：如何</span><br>參與數據/成果",
+            'body_event': "<span class='pyr-label'>主體：盛況花絮</span><br>現場畫面",
+            'body_quote': "<span class='pyr-label'>主體：各界感言</span><br>參加者評價",
+            'tail_future': "<span class='pyr-label'>結尾：機構展望</span><br>企業形象未來"
+        };
+        
         let shuffledPyr = [...pyrData].sort(() => Math.random() - 0.5);
         const bankContainer = document.getElementById('material-bank');
-        shuffledPyr.forEach(item => { bankContainer.innerHTML += `<button class="bank-item" onclick="selectItem(event, this, '${item.id}')">${item.t}</button>`; });
+        shuffledPyr.forEach(item => { bankContainer.innerHTML += `<button class="bank-item" id="bank-item-${item.id}" onclick="selectItem(event, this, '${item.id}')">${item.t}</button>`; });
 
         let selectedPyr = null, pyrCount = 0;
         function selectItem(e, el, type) {
@@ -1054,12 +1133,31 @@
             if(selectedPyr.type === expType) {
                 playSound('success');
                 updateScore(2, e); slotEl.innerHTML = `✔ ${selectedPyr.el.innerText}`; slotEl.classList.add('filled');
+                slotEl.dataset.type = expType;
                 selectedPyr.el.classList.add('used'); selectedPyr.el.classList.remove('active'); selectedPyr = null;
                 if(++pyrCount === 6) document.getElementById('btn-next-2').disabled = false;
             } else {
                 playSound('error');
                 updateScore(-1, e); showErrorModal('<i class="fa-solid fa-puzzle-piece"></i> 結構配對錯誤！', pyrErrs[expType]);
             }
+        }
+        
+        function resetLv2() {
+            playSound('click');
+            pyrCount = 0;
+            selectedPyr = null;
+            document.querySelectorAll('.pyr-slot').forEach(slot => {
+                slot.classList.remove('filled');
+                slot.innerHTML = pyrLabels[slot.dataset.type || Object.keys(pyrLabels).find(key => slot.getAttribute('onclick').includes(key))];
+            });
+            
+            document.querySelectorAll('.bank-item').forEach(item => {
+                item.classList.remove('used', 'active');
+            });
+            
+            document.getElementById('btn-next-2').disabled = true;
+            score = initialScoreLv2;
+            document.getElementById('score-display').innerText = score;
         }
 
         // ================= LV3 動態釣魚 =================
@@ -1184,7 +1282,8 @@
                     const exp = caughtFish.dataset.exp;
 
                     if (isCorrect) {
-                        playSound('catch'); updateScore(2, e);
+                        playSound('catch'); 
+                        updateScore(2, e);
                         
                         setTimeout(() => {
                             caughtFish.style.transition = "all 0.5s ease-out";
@@ -1197,7 +1296,8 @@
                             setTimeout(() => { fishCurrentQ++; loadFishQuestion(); }, 600);
                         }, 50);
                     } else {
-                        playSound('fail'); updateScore(-1, e);
+                        playSound('fail'); 
+                        updateScore(-1, e);
                         
                         setTimeout(() => {
                             caughtFish.style.transition = "all 0.4s ease-in";
@@ -1241,6 +1341,54 @@
                 }
             }, 250);
         }
+        
+        function resetLv3() {
+            playSound('click');
+            fishCurrentQ = 0;
+            
+            // Restore HTML structure if completed
+            if(document.querySelector('.fishing-game-area').innerHTML.includes('fa-trophy')) {
+                const gameAreaHtml = `
+                    <button class="exit-fs-btn" onclick="toggleFullScreenGame()"><i class="fa-solid fa-compress"></i> 關閉全螢幕</button>
+                    <div class="ocean-flow"></div>
+                    <div class="light-beams"></div>
+                    
+                    <div class="bubbles">
+                        <div class="bubble" style="left: 15%; width: 12px; height: 12px; animation-duration: 4s;"></div>
+                        <div class="bubble" style="left: 35%; width: 22px; height: 22px; animation-duration: 6s; animation-delay: 1.5s;"></div>
+                        <div class="bubble" style="left: 65%; width: 15px; height: 15px; animation-duration: 5s; animation-delay: 0.5s;"></div>
+                        <div class="bubble" style="left: 85%; width: 18px; height: 18px; animation-duration: 7s; animation-delay: 2.5s;"></div>
+                        <div class="bubble" style="left: 50%; width: 25px; height: 25px; animation-duration: 8s; animation-delay: 3s;"></div>
+                    </div>
+
+                    <div class="target-zone"></div>
+                    <div class="water-surface"></div>
+                    
+                    <div class="fish-question-board">
+                        <span class="fish-q-num" id="fish-q-num">Q1</span>
+                        <span id="fish-q-text">準備釣魚！</span>
+                    </div>
+                    
+                    <div class="boat">
+                        <div class="fisherman"><i class="fa-solid fa-user-astronaut"></i></div>
+                    </div>
+                    
+                    <div class="fishing-line" id="fishing-line">
+                        <div class="fishing-hook"></div>
+                    </div>
+
+                    <div class="fish-pool" id="fish-pool"></div>
+                    <button class="pull-btn" id="pull-rod-btn" onclick="pullRod(event)"><i class="fa-solid fa-anchor"></i> 拉 竿！</button>
+                `;
+                document.querySelector('.fishing-game-area').innerHTML = gameAreaHtml;
+            }
+            
+            document.getElementById('btn-next-3').disabled = true;
+            score = initialScoreLv3;
+            document.getElementById('score-display').innerText = score;
+            loadFishQuestion();
+            startBubbleSound();
+        }
 
         // ================= LV4 實戰寫作 =================
         const writeData = [
@@ -1252,7 +1400,7 @@
                 {w: "助弱勢圓夢", eg: "點燃 60 個夢想 助弱勢圓夢。"},
                 {w: "獲廣大迴響", eg: "點燃 60 個夢想獲社會各界廣大迴響。"},
                 {w: "締造佳績", eg: "點燃 60 個夢想締造佳績。"},
-                {w: "全港首創", eg: "全港首創「點燃 60 個夢想」計劃。"},
+                
                 {w: "盛大舉行", eg: "點燃 60 個夢想頒獎禮盛大舉行。"},
                 {w: "成果豐碩", eg: "點燃 60 個夢想計劃成果豐碩。"}
             ]},
@@ -1350,6 +1498,240 @@
                 previewBox.style.display = 'block';
                 activeBuff = { btn, word, targetId };
             }
+        }
+        
+        // Data Save and Load functions
+        function saveGameData(level) {
+            playSound('click');
+            let dataToSave = {};
+            
+            if (level === 'lv1') {
+                dataToSave = {
+                    lv1ClearedCount: lv1ClearedCount,
+                    lv1SectorStatus: lv1SectorStatus,
+                    score: score
+                };
+            } else if (level === 'lv2') {
+                let slotData = [];
+                document.querySelectorAll('.pyr-slot').forEach(slot => {
+                    slotData.push({
+                        id: slot.dataset.type,
+                        filled: slot.classList.contains('filled'),
+                        text: slot.innerText
+                    });
+                });
+                
+                let bankData = [];
+                document.querySelectorAll('.bank-item').forEach(item => {
+                     bankData.push({
+                         id: item.id,
+                         used: item.classList.contains('used')
+                     })
+                });
+                
+                dataToSave = {
+                    pyrCount: pyrCount,
+                    slotData: slotData,
+                    bankData: bankData,
+                    score: score
+                };
+            } else if (level === 'lv3') {
+                dataToSave = {
+                    fishCurrentQ: fishCurrentQ,
+                    score: score
+                };
+            } else if (level === 'lv4') {
+                let writeTextData = {};
+                writeData.forEach(item => {
+                    writeTextData[item.id] = document.getElementById(item.id).value;
+                });
+                dataToSave = {
+                    writeTextData: writeTextData
+                };
+            }
+            
+            localStorage.setItem('prGameData_' + level, JSON.stringify(dataToSave));
+            
+            const saveMsg = document.createElement('div');
+            saveMsg.innerHTML = '<i class="fa-solid fa-check-circle"></i> 儲存成功！';
+            saveMsg.style.position = 'fixed';
+            saveMsg.style.top = '100px';
+            saveMsg.style.left = '50%';
+            saveMsg.style.transform = 'translateX(-50%)';
+            saveMsg.style.background = 'rgba(0, 184, 148, 0.9)';
+            saveMsg.style.color = 'white';
+            saveMsg.style.padding = '10px 20px';
+            saveMsg.style.borderRadius = '20px';
+            saveMsg.style.fontWeight = 'bold';
+            saveMsg.style.zIndex = '9999';
+            saveMsg.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+            document.body.appendChild(saveMsg);
+            
+            setTimeout(() => {
+                saveMsg.style.transition = 'all 0.5s';
+                saveMsg.style.opacity = '0';
+                setTimeout(() => saveMsg.remove(), 500);
+            }, 1500);
+        }
+        
+        function loadGameData() {
+            // Load LV1
+            let lv1Saved = localStorage.getItem('prGameData_lv1');
+            if (lv1Saved) {
+                let data = JSON.parse(lv1Saved);
+                lv1ClearedCount = data.lv1ClearedCount;
+                lv1SectorStatus = data.lv1SectorStatus;
+                
+                for(let i=0; i<6; i++) {
+                    if(lv1SectorStatus[i]) {
+                        const sector = document.getElementById('sec-' + i);
+                        sector.classList.add('cleared');
+                        sector.innerHTML = "🚩 安全排除";
+                    }
+                }
+                
+                if (lv1ClearedCount === 6) {
+                    document.getElementById('btn-next-1').disabled = false;
+                    document.getElementById('btn-next-1').innerHTML = "雷區全數排除！進入 LV2 <i class='fa-solid fa-arrow-right'></i>";
+                    if (!unlockedLevels.includes('page2')) unlockedLevels.push('page2');
+                }
+                score = Math.max(score, data.score);
+            }
+            
+            // Load LV2
+            let lv2Saved = localStorage.getItem('prGameData_lv2');
+            if (lv2Saved) {
+                let data = JSON.parse(lv2Saved);
+                pyrCount = data.pyrCount;
+                
+                if (data.slotData) {
+                    const slots = document.querySelectorAll('.pyr-slot');
+                    data.slotData.forEach((sd, idx) => {
+                        if (sd.filled) {
+                            slots[idx].classList.add('filled');
+                            slots[idx].innerHTML = sd.text;
+                            slots[idx].dataset.type = sd.id;
+                        }
+                    });
+                }
+                
+                if(data.bankData) {
+                    data.bankData.forEach(bd => {
+                        if(bd.used) {
+                            let item = document.getElementById(bd.id);
+                            if(item) item.classList.add('used');
+                        }
+                    });
+                }
+                
+                if(pyrCount === 6) {
+                    document.getElementById('btn-next-2').disabled = false;
+                    if (!unlockedLevels.includes('page3')) unlockedLevels.push('page3');
+                }
+                score = Math.max(score, data.score);
+            }
+            
+            // Load LV3
+            let lv3Saved = localStorage.getItem('prGameData_lv3');
+            if (lv3Saved) {
+                let data = JSON.parse(lv3Saved);
+                fishCurrentQ = data.fishCurrentQ;
+                
+                if(fishCurrentQ >= 10) {
+                     document.querySelector('.fishing-game-area').innerHTML = "<div style='display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:white; font-size:2rem; font-weight:bold; text-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 20;'><i class='fa-solid fa-trophy' style='font-size:5rem; color:#fbc531; margin-bottom:20px;'></i>🎉 詞彙大豐收！所有魚兒已入網！</div>";
+                     document.getElementById('btn-next-3').disabled = false;
+                     if (!unlockedLevels.includes('page4')) unlockedLevels.push('page4');
+                }
+                score = Math.max(score, data.score);
+            }
+            
+            // Load LV4
+            let lv4Saved = localStorage.getItem('prGameData_lv4');
+            if (lv4Saved) {
+                let data = JSON.parse(lv4Saved);
+                if (data.writeTextData) {
+                    for (let key in data.writeTextData) {
+                        let ta = document.getElementById(key);
+                        if (ta) ta.value = data.writeTextData[key];
+                    }
+                }
+            }
+            
+            document.getElementById('score-display').innerText = score;
+            
+            // Update progress bar UI based on unlocked levels
+            unlockedLevels.forEach(id => {
+                let dot = document.getElementById('step-' + id);
+                if(dot) {
+                    dot.classList.add('unlocked');
+                    dot.innerHTML = dot.innerHTML.replace('<i class="fa-solid fa-lock"></i> ', '');
+                }
+            });
+        }
+        
+        // Call loadGameData on startup
+        window.addEventListener('DOMContentLoaded', loadGameData);
+
+        function exportHTMLToImage() {
+            playSound('click');
+            
+            // 顯示載入中提示
+            const loadingMsg = document.createElement('div');
+            loadingMsg.id = 'loading-msg';
+            loadingMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 圖片生成中，請稍候...';
+            loadingMsg.style.position = 'fixed'; loadingMsg.style.top = '50%'; loadingMsg.style.left = '50%';
+            loadingMsg.style.transform = 'translate(-50%, -50%)'; loadingMsg.style.background = 'rgba(0,0,0,0.8)';
+            loadingMsg.style.color = 'white'; loadingMsg.style.padding = '20px 30px'; loadingMsg.style.borderRadius = '15px';
+            loadingMsg.style.fontSize = '1.2rem'; loadingMsg.style.fontWeight = 'bold'; loadingMsg.style.zIndex = '9999';
+            document.body.appendChild(loadingMsg);
+
+            // 準備 HTML 內容
+            var contentHTML = "<div style=\"font-family: 'Microsoft JhengHei', sans-serif; line-height: 1.8; color: #2d3436; padding: 40px; background-color: #ffffff;\">";
+            contentHTML += "<h2 style='text-align:center; color:#2b2d42; font-size: 28px;'>商業新聞稿：點燃 60 個夢想</h2><hr style='border: 0; border-top: 2px solid #cbd5e0; margin: 20px 0;'>";
+            writeData.forEach(item => {
+                var text = document.getElementById(item.id).value.trim().replace(/\n/g, '<br>');
+                contentHTML += "<h3 style='color: #0984e3; border-bottom: 2px dashed #cbd5e0; padding-bottom: 8px; margin-top: 25px; font-size: 20px;'>" + item.t.substring(3) + "</h3>";
+                contentHTML += "<p style='text-indent: 2em; font-size: 18px; color: #4a5568; line-height: 2; margin-top: 10px;'>" + (text || "<span style='color:#a0aec0;'>[尚未撰寫]</span>") + "</p>";
+            });
+            contentHTML += "<div style='margin-top: 40px; text-align: right; color: #a0aec0; font-size: 14px; font-weight: bold;'>—— 公關大師晉級戰 特訓成果 ——</div>";
+            contentHTML += "</div>";
+
+            // 建立實體 DOM 元素並暫時加入畫面中 (隱藏)
+            var tempContainer = document.createElement('div');
+            tempContainer.innerHTML = contentHTML;
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '0';
+            tempContainer.style.width = '800px'; // 固定寬度確保排版正確
+            tempContainer.style.backgroundColor = '#ffffff';
+            document.body.appendChild(tempContainer);
+
+            // 使用 html2canvas 生成圖片
+            html2canvas(tempContainer, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(function(canvas) {
+                // 生成完畢後清理 DOM
+                document.body.removeChild(tempContainer);
+                document.getElementById('loading-msg').remove();
+                
+                // 轉換為 Base64 圖片
+                var imgData = canvas.toDataURL("image/png");
+                
+                // 設定彈窗內的圖片與下載連結
+                document.getElementById('generated-image').src = imgData;
+                document.getElementById('btn-download-img').href = imgData;
+                
+                // 顯示彈窗
+                document.getElementById('image-modal').style.display = 'flex';
+                playSound('success');
+            }).catch(function(err) {
+                console.error("生成圖片失敗", err);
+                document.getElementById('loading-msg').remove();
+                alert("生成圖片失敗，請稍後再試！");
+            });
+        }
+        
+        function closeImageModal() {
+            playSound('click');
+            document.getElementById('image-modal').style.display = 'none';
         }
 
         function exportHTMLToWord() {
